@@ -9,7 +9,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest } from '@/hooks/useDayRequests';
-import type { DayRequest } from '@/types';
+import { useWaitlistBookings, useApproveWaitlistBooking, useCancelBooking } from '@/hooks/useBookings';
+import type { DayRequest, WaitlistBooking } from '@/types';
 
 export default function RequestsScreen() {
   const { profile } = useAuth();
@@ -122,14 +123,29 @@ function MemberRequestsView() {
 
 function AdminRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useAllDayRequests();
+  const { data: waitlist, refetch: refetchWaitlist } = useWaitlistBookings();
   const respondMutation = useRespondToDayRequest();
+  const approveMutation = useApproveWaitlistBooking();
+  const declineMutation = useCancelBooking();
   const [snackMessage, setSnackMessage] = useState('');
 
-  const pendingCount = requests?.filter(r => r.status === 'pending').length ?? 0;
+  const pendingCount = (requests?.filter(r => r.status === 'pending').length ?? 0) + (waitlist?.length ?? 0);
 
   async function handleRespond(id: string, status: 'approved' | 'declined') {
     const { error } = await respondMutation.mutateAsync({ id, status });
     setSnackMessage(error ? 'Could not respond. Try again.' : status === 'approved' ? 'Request approved.' : 'Request declined.');
+  }
+
+  async function handleApproveWaitlist(bookingId: string) {
+    const { error } = await approveMutation.mutateAsync(bookingId);
+    setSnackMessage(error ? 'Could not approve. Try again.' : 'Waitlist booking confirmed!');
+    refetchWaitlist();
+  }
+
+  async function handleDeclineWaitlist(bookingId: string) {
+    const { error } = await declineMutation.mutateAsync(bookingId);
+    setSnackMessage(error ? 'Could not decline. Try again.' : 'Waitlist booking removed.');
+    refetchWaitlist();
   }
 
   if (isLoading) return <ScreenShell title="Requests" badge={0}><View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View></ScreenShell>;
@@ -143,12 +159,31 @@ function AdminRequestsView() {
       <FlatList
         data={[...pending, ...responded]}
         keyExtractor={item => item.id}
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary.default} />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => { refetch(); refetchWaitlist(); }} tintColor={colors.primary.default} />}
+        ListHeaderComponent={
+          waitlist && waitlist.length > 0 ? (
+            <View>
+              <Text style={styles.sectionHeader}>Waitlist</Text>
+              {waitlist.map(item => (
+                <WaitlistCard
+                  key={item.booking_id}
+                  item={item}
+                  onApprove={() => handleApproveWaitlist(item.booking_id)}
+                  onDecline={() => handleDeclineWaitlist(item.booking_id)}
+                  isPending={approveMutation.isPending || declineMutation.isPending}
+                />
+              ))}
+              <Text style={styles.sectionHeader}>Day Requests</Text>
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No requests</Text>
-            <Text style={styles.emptyBody}>Members can suggest days here.</Text>
-          </View>
+          waitlist?.length === 0 ? (
+            <View style={styles.empty}>
+              <Text style={styles.emptyTitle}>No requests</Text>
+              <Text style={styles.emptyBody}>Members can suggest days here.</Text>
+            </View>
+          ) : null
         }
         renderItem={({ item }) => (
           <AdminRequestCard
@@ -180,6 +215,45 @@ function ScreenShell({ title, badge, children }: { title: string; badge?: number
       </View>
       <View style={styles.flex}>{children}</View>
     </SafeAreaView>
+  );
+}
+
+function WaitlistCard({
+  item,
+  onApprove,
+  onDecline,
+  isPending,
+}: {
+  item: WaitlistBooking;
+  onApprove: () => void;
+  onDecline: () => void;
+  isPending: boolean;
+}) {
+  return (
+    <Card style={styles.card} mode="elevated">
+      <Card.Content style={styles.cardContent}>
+        <View style={styles.cardRow}>
+          <View style={styles.flex}>
+            <Text style={styles.cardDate}>{formatDate(item.date)}</Text>
+            <Text style={styles.memberName}>{item.full_name}</Text>
+          </View>
+          <Chip compact style={styles.waitlistChip} textStyle={styles.waitlistChipText}>
+            Waitlist
+          </Chip>
+        </View>
+        <Text style={styles.slotsNote}>
+          {item.confirmed_count} / {item.slot_count} slots booked
+        </Text>
+        <View style={styles.adminActions}>
+          <Button mode="contained" compact onPress={onApprove} loading={isPending} disabled={isPending} buttonColor={colors.secondary.default} style={styles.respondBtn}>
+            Confirm
+          </Button>
+          <Button mode="outlined" compact onPress={onDecline} disabled={isPending} textColor={colors.semantic.error} style={styles.declineBtn}>
+            Remove
+          </Button>
+        </View>
+      </Card.Content>
+    </Card>
   );
 }
 
@@ -299,6 +373,10 @@ const styles = StyleSheet.create({
   respondBtn: { borderRadius: radius.md },
   declineBtn: { borderColor: colors.semantic.error, borderRadius: radius.md },
   fab: { position: 'absolute', right: spacing[4], bottom: spacing[6], backgroundColor: colors.primary.default, borderRadius: radius.full },
+  sectionHeader: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
+  waitlistChip: { backgroundColor: colors.secondary.light },
+  waitlistChipText: { fontSize: typography.fontSize.xs, color: colors.secondary.dark },
+  slotsNote: { fontSize: typography.fontSize.sm, color: colors.text.secondary },
   modal: { backgroundColor: colors.surface.card, margin: spacing[4], borderRadius: radius.xl, padding: spacing[6], gap: spacing[3] },
   modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing[1] },
   label: { fontSize: typography.fontSize.sm, color: colors.text.secondary },

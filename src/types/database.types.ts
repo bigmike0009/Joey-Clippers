@@ -222,6 +222,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_waitlist_booking: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
       book_slot: { Args: { p_shop_day_id: string }; Returns: string }
       cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
       generate_invite: { Args: { p_email?: string }; Returns: string }
@@ -262,6 +266,20 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_waitlist_bookings: {
+        Args: never
+        Returns: {
+          booking_id: string
+          confirmed_count: number
+          date: string
+          full_name: string
+          member_id: string
+          requested_at: string
+          shop_day_id: string
+          slot_count: number
+        }[]
+      }
+      join_waitlist: { Args: { p_shop_day_id: string }; Returns: string }
       redeem_invite: { Args: { p_token: string }; Returns: boolean }
       revoke_member: { Args: { p_user_id: string }; Returns: undefined }
     }

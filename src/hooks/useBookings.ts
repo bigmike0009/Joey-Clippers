@@ -101,4 +101,36 @@ export function useCancelBooking() {
   });
 }
 
+export function useJoinWaitlist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (shopDayId: string) => bookingsService.joinWaitlist(shopDayId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
+    },
+  });
+}
+
+export function useApproveWaitlistBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => bookingsService.approveWaitlistBooking(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
+    },
+  });
+}
+
+export function useWaitlistBookings() {
+  return useQuery({
+    queryKey: [...queryKeys.bookings.all, 'waitlist'],
+    queryFn: async () => {
+      const { data, error } = await bookingsService.getWaitlistBookings();
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export { getBookingErrorMessage };

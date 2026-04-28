@@ -17,7 +17,7 @@ import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useUpcomingShopDaysWithBookings } from '@/hooks/useBookings';
 import { useCreateShopDay, useCancelShopDay, useUpdateShopDaySlots } from '@/hooks/useShopDays';
-import { useBookSlot, useCancelBooking } from '@/hooks/useBookings';
+import { useBookSlot, useCancelBooking, useJoinWaitlist } from '@/hooks/useBookings';
 import { ShopDayFormModal } from '@/components/ShopDayFormModal';
 import { getBookingErrorMessage } from '@/lib/errors';
 import type { ShopDay, ShopDaySummary } from '@/types';
@@ -34,6 +34,7 @@ export default function HomeScreen() {
   const updateSlotsMutation = useUpdateShopDaySlots();
   const bookSlotMutation = useBookSlot();
   const cancelBookingMutation = useCancelBooking();
+  const joinWaitlistMutation = useJoinWaitlist();
 
   const [formVisible, setFormVisible] = useState(false);
   const [editTarget, setEditTarget] = useState<ShopDay | null>(null);
@@ -77,6 +78,12 @@ export default function HomeScreen() {
   async function handleCancelBooking(bookingId: string) {
     const { error } = await cancelBookingMutation.mutateAsync(bookingId);
     if (error) setSnackMessage('Could not cancel booking. Please try again.');
+  }
+
+  async function handleJoinWaitlist(shopDayId: string) {
+    const { error } = await joinWaitlistMutation.mutateAsync(shopDayId);
+    if (error) setSnackMessage('Could not join waitlist. Please try again.');
+    else setSnackMessage("You're on the waitlist! Joe will approve when a slot opens.");
   }
 
   if (isLoading) {
@@ -134,6 +141,7 @@ export default function HomeScreen() {
           const remaining = item.slot_count - (item.confirmed_count ?? 0);
           const isFull = remaining <= 0;
           const isBooked = item.my_booking_status === 'confirmed';
+          const isWaitlisted = item.my_booking_status === 'pending';
 
           return (
             <TouchableOpacity
@@ -168,17 +176,39 @@ export default function HomeScreen() {
                       >
                         Cancel Booking
                       </Button>
+                    ) : isWaitlisted ? (
+                      <Button
+                        mode="outlined"
+                        compact
+                        textColor={colors.text.secondary}
+                        style={styles.cancelBookingBtn}
+                        onPress={() => item.my_booking_id && handleCancelBooking(item.my_booking_id)}
+                        loading={cancelBookingMutation.isPending}
+                      >
+                        Leave Waitlist
+                      </Button>
+                    ) : isFull ? (
+                      <Button
+                        mode="outlined"
+                        compact
+                        onPress={() => handleJoinWaitlist(item.id)}
+                        loading={joinWaitlistMutation.isPending}
+                        textColor={colors.secondary.default}
+                        style={styles.waitlistBtn}
+                      >
+                        Join Waitlist
+                      </Button>
                     ) : (
                       <Button
                         mode="contained"
                         compact
-                        disabled={isFull || bookSlotMutation.isPending}
+                        disabled={bookSlotMutation.isPending}
                         onPress={() => handleBook(item.id)}
                         loading={bookSlotMutation.isPending}
                         buttonColor={colors.primary.default}
                         style={styles.bookBtn}
                       >
-                        {isFull ? 'Full' : 'Book'}
+                        Book
                       </Button>
                     )}
                   </View>
@@ -300,6 +330,7 @@ const styles = StyleSheet.create({
   memberAction: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing[1] },
   bookBtn: { borderRadius: radius.md },
   cancelBookingBtn: { borderColor: colors.semantic.error, borderRadius: radius.md },
+  waitlistBtn: { borderColor: colors.secondary.default, borderRadius: radius.md },
   adminActions: { flexDirection: 'row', gap: spacing[1], marginTop: spacing[1] },
   section: { paddingTop: spacing[4] },
   sectionTitle: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: spacing[4], marginBottom: spacing[2] },

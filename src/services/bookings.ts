@@ -16,6 +16,18 @@ export async function cancelBooking(bookingId: string) {
   return supabase.rpc('cancel_booking', { p_booking_id: bookingId });
 }
 
+export async function joinWaitlist(shopDayId: string) {
+  return supabase.rpc('join_waitlist', { p_shop_day_id: shopDayId });
+}
+
+export async function approveWaitlistBooking(bookingId: string) {
+  return supabase.rpc('approve_waitlist_booking', { p_booking_id: bookingId });
+}
+
+export async function getWaitlistBookings() {
+  return supabase.rpc('get_waitlist_bookings');
+}
+
 export async function getBookingsForDay(shopDayId: string) {
   return supabase
     .from('bookings')

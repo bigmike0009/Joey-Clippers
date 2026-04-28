@@ -8,7 +8,7 @@ export type DayRequest = Tables<'day_requests'>;
 
 export type UserRole = 'admin' | 'member';
 export type ShopDayStatus = 'open' | 'cancelled';
-export type BookingStatus = 'confirmed' | 'cancelled';
+export type BookingStatus = 'confirmed' | 'cancelled' | 'pending';
 export type DayRequestStatus = 'pending' | 'approved' | 'declined';
 
 import type { Database } from './database.types';
@@ -18,3 +18,4 @@ type RpcReturns<F extends keyof Database['public']['Functions']> =
 
 export type ShopDaySummary = RpcReturns<'get_upcoming_shop_days_with_bookings'>;
 export type MyBookingRow = RpcReturns<'get_my_bookings'>;
+export type WaitlistBooking = RpcReturns<'get_waitlist_bookings'>;
