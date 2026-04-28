@@ -22,6 +22,57 @@ If any prerequisite fails, stop and tell the user what to fix.
 
 ---
 
+## Subtask Orchestration Framework *(applies to all phases)*
+
+Use this framework to execute individualized subtasks autonomously and consistently.
+
+### 1) Use the right execution primitive
+
+- Use **pipeline phases** for top-level orchestration and sequencing
+- Use **slash commands** for specialized execution (`/plan`, `/ultrathink`, `/supabase-migrations`, `/ship`, `/code-review`, `/qa`, etc.)
+- Use **subagents** only for bounded exploration (finding files, tracing dependencies, identifying risks), then execute changes in the main run
+
+Do not use subagents as final decision-makers for architecture or merge readiness.
+
+### 2) Command routing rules
+
+- Requirement ambiguity: run `/grill-me` first
+- Architecture/data/security decisions: run `/ultrathink` then `/plan`
+- Data schema or RLS changes: run `/supabase-migrations`
+- New screens/routes: run `/new-screen`
+- Logic with correctness risk: run `/tdd`
+- Pre-merge quality gate: run `/ship`, then `/code-review`, then `/qa`
+- Bug investigations: run `/triage-issue` or `/systematic-debugging`
+
+### 3) Subtask Contract Template (required)
+
+Before implementing any non-trivial subtask, write this contract in the working notes or PR body and execute only within its scope:
+
+```
+Subtask: <name>
+Goal: <single concrete outcome>
+Scope: <files/surfaces allowed to change>
+Non-goals: <what must not change>
+Dependencies: <required prior subtasks or services>
+Quality gates: <typecheck/lint/test/review commands>
+Artifacts: <docs/files/queries produced>
+Done when: <objective completion criteria>
+```
+
+If the contract is incomplete or ambiguous, stop and resolve ambiguity before coding.
+
+### 4) Model and reasoning routing
+
+When multiple runs are available, route work by reasoning needs:
+
+- High-reasoning model: data architecture, long-term schema design, RLS/security, risky refactors
+- Mid-tier model: most feature implementation and service/UI integration
+- Lower-cost model: low-risk UI polish, copy edits, minor mechanical cleanup
+
+One headless run uses one model. For mixed-model execution, split work into multiple runs using scoped prompts and resume from `docs/IMPLEMENTATION_TRACKER.md`.
+
+---
+
 ## Phase 0 — Data Architecture Blueprint *(required first)*
 
 **Skip if:** `docs/DATA_ARCHITECTURE.md` already exists and matches the current `IDEA.md` scope.
@@ -33,6 +84,7 @@ Read `IDEA.md` in full and produce a backend-first architecture plan from a seni
 Required workflow:
 - Run `/ultrathink` to pressure-test domain boundaries, tenancy, lifecycle, and scaling risks
 - Run `/plan` specifically for data modeling before app scaffolding work
+- Create and follow a Subtask Contract for the architecture deliverable
 - Create `docs/DATA_ARCHITECTURE.md` with concrete, implementation-ready decisions
 
 Use this exact structure:
@@ -308,16 +360,21 @@ If a matching merged PR exists, skip this feature and move to the next.
    - Sequence changes (schema/types → services → UI)
    - Identify regression risk
 
-3. Implement following `CLAUDE.md` conventions:
+3. Create a Subtask Contract for the feature and include:
+   - Explicit scope and non-goals for this feature PR
+   - Required quality gates and artifacts
+   - Objective done criteria tied to feature acceptance criteria
+
+4. Implement following `CLAUDE.md` conventions:
    - All colors from `src/theme/colors.ts` — no inline hex values
    - All spacing from `src/theme/spacing.ts` — no magic numbers
    - All font sizes from `src/theme/typography.ts`
    - Every screen handles: loading state, error state, empty state, happy path
    - Tests alongside code (TDD preferred — run `/tdd` for complex logic)
 
-4. Run `/ship` — work through the full pre-ship checklist. Fix everything flagged critical or major.
+5. Run `/ship` — work through the full pre-ship checklist. Fix everything flagged critical or major.
 
-5. Push and open PR:
+6. Push and open PR:
    ```bash
    git push -u origin feature/<n>-<slug>
    gh pr create --title "feat(<slug>): <name>" \
@@ -325,9 +382,9 @@ If a matching merged PR exists, skip this feature and move to the next.
      --base main
    ```
 
-6. Run `/code-review` and `/qa` on the PR diff. Apply all fixes. Push.
+7. Run `/code-review` and `/qa` on the PR diff. Apply all fixes. Push.
 
-7. Wait for CI, then merge:
+8. Wait for CI, then merge:
    ```bash
    gh pr checks <number> --watch
    gh pr review <number> --approve --body "Automated review complete."
@@ -335,7 +392,7 @@ If a matching merged PR exists, skip this feature and move to the next.
    git checkout main && git pull
    ```
 
-8. Record in tracker: `echo "- [$(date)] Feature <n> '<name>' merged" >> docs/IMPLEMENTATION_TRACKER.md`
+9. Record in tracker: `echo "- [$(date)] Feature <n> '<name>' merged" >> docs/IMPLEMENTATION_TRACKER.md`
 
 Repeat for every feature.
 

@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Joe's Clippers",
+    "slug": "joeys-clippers",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "joeys-clippers",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#D97706"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bigmike0009.joeysclippers"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#D97706"
+      },
+      "package": "com.bigmike0009.joeysclippers"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
