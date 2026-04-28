@@ -49,3 +49,6 @@ coverage/
 
 # Local pipeline tracker — scratchpad only, not part of git history
 docs/IMPLEMENTATION_TRACKER.md
+
+# Supabase temp files
+supabase/.temp/
