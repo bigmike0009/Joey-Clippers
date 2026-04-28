@@ -28,6 +28,7 @@ function RootNavigator() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="day-detail/[id]" options={{ presentation: 'modal', headerShown: true, title: 'Day Detail' }} />
     </Stack>
   );
 }

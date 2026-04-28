@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import {
   Text,
   Card,
@@ -24,6 +25,7 @@ import type { ShopDay, ShopDaySummary } from '@/types';
 export default function HomeScreen() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const router = useRouter();
 
   const { data: shopDays, isLoading, isError, refetch, isRefetching } = useUpcomingShopDaysWithBookings();
 
@@ -134,6 +136,10 @@ export default function HomeScreen() {
           const isBooked = item.my_booking_status === 'confirmed';
 
           return (
+            <TouchableOpacity
+              onPress={() => isAdmin && router.push(`/day-detail/${item.id}`)}
+              activeOpacity={isAdmin ? 0.7 : 1}
+            >
             <Card style={styles.card} mode="elevated">
               <Card.Content style={styles.cardContent}>
                 <View style={styles.cardRow}>
@@ -192,6 +198,7 @@ export default function HomeScreen() {
                 )}
               </Card.Content>
             </Card>
+            </TouchableOpacity>
           );
         }}
         ListFooterComponent={
