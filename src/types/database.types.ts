@@ -232,7 +232,36 @@ export type Database = {
           is_valid: boolean
         }[]
       }
+      get_my_bookings: {
+        Args: never
+        Returns: {
+          booked_at: string
+          booking_id: string
+          booking_status: string
+          date: string
+          notes: string
+          shop_day_id: string
+          shop_day_status: string
+          slot_count: number
+        }[]
+      }
       get_my_role: { Args: never; Returns: string }
+      get_upcoming_shop_days_with_bookings: {
+        Args: never
+        Returns: {
+          confirmed_count: number
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          my_booking_id: string
+          my_booking_status: string
+          notes: string
+          slot_count: number
+          status: string
+          updated_at: string
+        }[]
+      }
       redeem_invite: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
