@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { Modal, Portal, Text, TextInput, Button, HelperText } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { ShopDay } from '@/types';
@@ -72,6 +72,8 @@ export function ShopDayFormModal({
   return (
     <Portal>
       <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.container}>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Text style={styles.title}>{isEdit ? 'Edit Shop Day' : 'New Shop Day'}</Text>
 
         {!isEdit && (
@@ -144,6 +146,8 @@ export function ShopDayFormModal({
             {isEdit ? 'Save' : 'Create'}
           </Button>
         </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </Modal>
     </Portal>
   );

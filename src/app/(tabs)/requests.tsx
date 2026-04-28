@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Platform, RefreshControl } from 'react-native';
+import { View, FlatList, StyleSheet, Platform, RefreshControl, KeyboardAvoidingView, ScrollView } from 'react-native';
 import {
   Text, Card, Button, Chip, FAB, ActivityIndicator, Portal, Modal,
   TextInput, HelperText, Snackbar, Badge,
@@ -75,6 +75,8 @@ function MemberRequestsView() {
 
       <Portal>
         <Modal visible={formVisible} onDismiss={() => setFormVisible(false)} contentContainerStyle={styles.modal}>
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Text style={styles.modalTitle}>Request a Day</Text>
 
           <Text style={styles.label}>Date</Text>
@@ -110,6 +112,8 @@ function MemberRequestsView() {
               Submit
             </Button>
           </View>
+          </ScrollView>
+          </KeyboardAvoidingView>
         </Modal>
       </Portal>
 
