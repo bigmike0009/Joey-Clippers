@@ -38,7 +38,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="bookings"
         options={{
-          title: isAdmin ? 'Bookings' : 'My Bookings',
+          href: isAdmin ? null : undefined,
+          title: 'My Bookings',
           tabBarIcon: ({ focused }) => <TabIcon name="checkmark-circle" focused={focused} />,
         }}
       />
@@ -49,15 +50,14 @@ export default function TabsLayout() {
           tabBarIcon: ({ focused }) => <TabIcon name="chatbubble-ellipses" focused={focused} />,
         }}
       />
-      {isAdmin && (
-        <Tabs.Screen
-          name="members"
-          options={{
-            title: 'Members',
-            tabBarIcon: ({ focused }) => <TabIcon name="people" focused={focused} />,
-          }}
-        />
-      )}
+      <Tabs.Screen
+        name="members"
+        options={{
+          href: !isAdmin ? null : undefined,
+          title: 'Members',
+          tabBarIcon: ({ focused }) => <TabIcon name="people" focused={focused} />,
+        }}
+      />
       <Tabs.Screen
         name="profile"
         options={{
