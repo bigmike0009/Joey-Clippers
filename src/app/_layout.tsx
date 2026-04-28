@@ -18,7 +18,7 @@ function RootNavigator() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !segments.length) return;
     const inAuthGroup = segments[0] === '(auth)';
     if (!session && !inAuthGroup) router.replace('/(auth)/login');
     if (session && inAuthGroup) router.replace('/(tabs)/');
