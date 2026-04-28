@@ -5,7 +5,11 @@ export async function getUpcomingShopDaysWithBookings() {
 }
 
 export async function getMyBookings() {
-  return supabase.rpc('get_my_bookings');
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  return supabase
+    .rpc('get_my_bookings')
+    .gte('date', cutoff.toISOString().split('T')[0]);
 }
 
 export async function bookSlot(shopDayId: string) {

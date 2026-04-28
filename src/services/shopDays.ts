@@ -38,6 +38,19 @@ export async function updateShopDaySlots(id: string, slotCount: number) {
     .single();
 }
 
+export async function getPastShopDays() {
+  const today = new Date().toISOString().split('T')[0];
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+  return supabase
+    .from('shop_days')
+    .select('*')
+    .lt('date', today)
+    .gte('date', cutoffStr)
+    .order('date', { ascending: false });
+}
+
 export async function cancelShopDay(id: string) {
   return supabase
     .from('shop_days')

@@ -14,6 +14,17 @@ export function useUpcomingShopDays() {
   });
 }
 
+export function usePastShopDays() {
+  return useQuery({
+    queryKey: queryKeys.shopDays.past(),
+    queryFn: async () => {
+      const { data, error } = await shopDaysService.getPastShopDays();
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
 export function useCreateShopDay() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
