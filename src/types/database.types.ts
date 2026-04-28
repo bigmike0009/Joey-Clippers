@@ -263,6 +263,7 @@ export type Database = {
         }[]
       }
       redeem_invite: { Args: { p_token: string }; Returns: boolean }
+      revoke_member: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
