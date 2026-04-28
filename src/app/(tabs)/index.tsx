@@ -1,20 +1,247 @@
-import { View, StyleSheet } from 'react-native';
-import { Text, ActivityIndicator } from 'react-native-paper';
+import { useState } from 'react';
+import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import {
+  Text,
+  Card,
+  Button,
+  FAB,
+  Chip,
+  ActivityIndicator,
+  Snackbar,
+  Dialog,
+  Portal,
+} from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, typography, radius } from '@/theme';
+import { useAuth } from '@/lib/AuthContext';
+import { useUpcomingShopDays, useCreateShopDay, useCancelShopDay, useUpdateShopDaySlots } from '@/hooks/useShopDays';
+import { ShopDayFormModal } from '@/components/ShopDayFormModal';
+import type { ShopDay } from '@/types';
 
 export default function HomeScreen() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'admin';
+
+  const { data: shopDays, isLoading, isError, refetch, isRefetching } = useUpcomingShopDays();
+
+  const createMutation = useCreateShopDay();
+  const cancelMutation = useCancelShopDay();
+  const updateSlotsMutation = useUpdateShopDaySlots();
+
+  const [formVisible, setFormVisible] = useState(false);
+  const [editTarget, setEditTarget] = useState<ShopDay | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<ShopDay | null>(null);
+  const [snackMessage, setSnackMessage] = useState('');
+
+  const existingDates = shopDays?.filter(d => d.status === 'open').map(d => d.date) ?? [];
+
+  async function handleCreate(date: string, slotCount: number, notes?: string) {
+    const { error } = await createMutation.mutateAsync({ date, slotCount, notes });
+    if (error) {
+      setSnackMessage('Could not create shop day. Date may already exist.');
+    } else {
+      setFormVisible(false);
+      setSnackMessage('Shop day created!');
+    }
+  }
+
+  async function handleEditSlots(date: string, slotCount: number) {
+    if (!editTarget) return;
+    const { error } = await updateSlotsMutation.mutateAsync({ id: editTarget.id, slotCount });
+    if (error) {
+      setSnackMessage('Could not update slot count.');
+    } else {
+      setEditTarget(null);
+      setSnackMessage('Slot count updated.');
+    }
+  }
+
+  async function handleCancel() {
+    if (!cancelTarget) return;
+    const { error } = await cancelMutation.mutateAsync(cancelTarget.id);
+    setCancelTarget(null);
+    if (error) {
+      setSnackMessage('Could not cancel shop day.');
+    } else {
+      setSnackMessage('Shop day cancelled.');
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Shop Days</Text>
+        </View>
+        <View style={styles.centered}>
+          <ActivityIndicator color={colors.primary.default} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>Shop Days</Text>
+        </View>
+        <View style={styles.centered}>
+          <Text style={styles.errorText}>Something went wrong.</Text>
+          <Button onPress={() => refetch()} textColor={colors.primary.default}>
+            Retry
+          </Button>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const openDays = shopDays?.filter(d => d.status === 'open') ?? [];
+  const cancelledDays = shopDays?.filter(d => d.status === 'cancelled') ?? [];
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Shop Days</Text>
-      </View>
-      <View style={styles.placeholder}>
-        <ActivityIndicator color={colors.primary.default} />
-        <Text style={styles.placeholderText}>Coming soon</Text>
-      </View>
+      <FlatList
+        data={openDays}
+        keyExtractor={item => item.id}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            tintColor={colors.primary.default}
+          />
+        }
+        ListHeaderComponent={
+          <View style={styles.header}>
+            <Text style={styles.title}>Shop Days</Text>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>No open shop days</Text>
+            <Text style={styles.emptyBody}>
+              {isAdmin
+                ? 'Tap + to open a new day.'
+                : "Joe hasn't opened any days yet. Check back soon!"}
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <Card style={styles.card} mode="elevated">
+            <Card.Content style={styles.cardContent}>
+              <View style={styles.cardRow}>
+                <Text style={styles.dayDate}>{formatDate(item.date)}</Text>
+                <Chip compact style={styles.slotsChip} textStyle={styles.slotsChipText}>
+                  {item.slot_count} slots
+                </Chip>
+              </View>
+              {item.notes ? <Text style={styles.notes}>{item.notes}</Text> : null}
+              {isAdmin && (
+                <View style={styles.adminActions}>
+                  <Button
+                    mode="text"
+                    compact
+                    textColor={colors.secondary.default}
+                    onPress={() => setEditTarget(item)}
+                  >
+                    Edit slots
+                  </Button>
+                  <Button
+                    mode="text"
+                    compact
+                    textColor={colors.semantic.error}
+                    onPress={() => setCancelTarget(item)}
+                  >
+                    Cancel day
+                  </Button>
+                </View>
+              )}
+            </Card.Content>
+          </Card>
+        )}
+        ListFooterComponent={
+          cancelledDays.length > 0 ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Cancelled</Text>
+              {cancelledDays.map(item => (
+                <Card key={item.id} style={[styles.card, styles.cancelledCard]} mode="outlined">
+                  <Card.Content style={styles.cardContent}>
+                    <View style={styles.cardRow}>
+                      <Text style={[styles.dayDate, styles.cancelledText]}>{formatDate(item.date)}</Text>
+                      <Chip compact style={styles.cancelledChip} textStyle={styles.cancelledChipText}>
+                        Cancelled
+                      </Chip>
+                    </View>
+                  </Card.Content>
+                </Card>
+              ))}
+            </View>
+          ) : null
+        }
+        contentContainerStyle={styles.list}
+      />
+
+      {isAdmin && (
+        <FAB
+          icon="plus"
+          style={styles.fab}
+          color={colors.text.inverse}
+          onPress={() => setFormVisible(true)}
+        />
+      )}
+
+      <ShopDayFormModal
+        visible={formVisible}
+        onDismiss={() => setFormVisible(false)}
+        onSubmit={handleCreate}
+        loading={createMutation.isPending}
+        existingDates={existingDates}
+      />
+
+      <ShopDayFormModal
+        visible={!!editTarget}
+        onDismiss={() => setEditTarget(null)}
+        onSubmit={handleEditSlots}
+        loading={updateSlotsMutation.isPending}
+        existing={editTarget}
+      />
+
+      <Portal>
+        <Dialog visible={!!cancelTarget} onDismiss={() => setCancelTarget(null)}>
+          <Dialog.Title>Cancel shop day?</Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              Cancel the shop day on {cancelTarget ? formatDate(cancelTarget.date) : ''}? Members
+              who booked will lose their slot.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setCancelTarget(null)}>Keep it</Button>
+            <Button
+              textColor={colors.semantic.error}
+              loading={cancelMutation.isPending}
+              onPress={handleCancel}
+            >
+              Cancel day
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      <Snackbar
+        visible={!!snackMessage}
+        onDismiss={() => setSnackMessage('')}
+        duration={3000}
+      >
+        {snackMessage}
+      </Snackbar>
     </SafeAreaView>
   );
+}
+
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
 const styles = StyleSheet.create({
@@ -32,14 +259,104 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
   },
-  placeholder: {
+  centered: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[2],
+    gap: spacing[3],
   },
-  placeholderText: {
+  errorText: {
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
+  },
+  list: {
+    paddingBottom: spacing[16],
+  },
+  empty: {
+    paddingHorizontal: spacing[6],
+    paddingTop: spacing[12],
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  emptyTitle: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    textAlign: 'center',
+  },
+  emptyBody: {
+    fontSize: typography.fontSize.base,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: typography.fontSize.base * typography.lineHeight.normal,
+  },
+  card: {
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[3],
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface.card,
+  },
+  cancelledCard: {
+    opacity: 0.6,
+  },
+  cardContent: {
+    gap: spacing[2],
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  dayDate: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
+    flex: 1,
+  },
+  cancelledText: {
+    color: colors.text.disabled,
+  },
+  slotsChip: {
+    backgroundColor: colors.primary.light,
+  },
+  slotsChipText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.medium,
+  },
+  cancelledChip: {
+    backgroundColor: colors.neutral[200],
+  },
+  cancelledChipText: {
+    fontSize: typography.fontSize.xs,
+    color: colors.text.secondary,
+  },
+  notes: {
+    fontSize: typography.fontSize.sm,
+    color: colors.text.secondary,
+    fontStyle: 'italic',
+  },
+  adminActions: {
+    flexDirection: 'row',
+    gap: spacing[1],
+    marginTop: spacing[1],
+  },
+  section: {
+    paddingTop: spacing[4],
+  },
+  sectionTitle: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.secondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[2],
+  },
+  fab: {
+    position: 'absolute',
+    right: spacing[4],
+    bottom: spacing[6],
+    backgroundColor: colors.primary.default,
+    borderRadius: radius.full,
   },
 });
