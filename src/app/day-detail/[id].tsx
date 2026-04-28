@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import {
   Text, List, Button, Divider, ActivityIndicator, Snackbar,
-  Dialog, Portal, Chip,
+  Dialog, Portal, Chip, PaperProvider,
 } from 'react-native-paper';
+import { paperTheme } from '@/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { colors, spacing, typography, radius } from '@/theme';
@@ -54,24 +55,29 @@ export default function DayDetailScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
-      </SafeAreaView>
+      <PaperProvider theme={paperTheme}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
+        </SafeAreaView>
+      </PaperProvider>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <Text style={styles.errorText}>Something went wrong.</Text>
-          <Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button>
-        </View>
-      </SafeAreaView>
+      <PaperProvider theme={paperTheme}>
+        <SafeAreaView style={styles.container}>
+          <View style={styles.centered}>
+            <Text style={styles.errorText}>Something went wrong.</Text>
+            <Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button>
+          </View>
+        </SafeAreaView>
+      </PaperProvider>
     );
   }
 
   return (
+    <PaperProvider theme={paperTheme}>
     <SafeAreaView style={styles.container}>
       <FlatList
         data={(bookings ?? []) as BookingWithProfile[]}
@@ -189,6 +195,7 @@ export default function DayDetailScreen() {
         {snackMessage}
       </Snackbar>
     </SafeAreaView>
+    </PaperProvider>
   );
 }
 
