@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { queryClient } from './queryClient';
+import { registerForPushNotificationsAsync } from './notifications';
+import { savePushToken } from '@/services/profiles';
 import type { Profile } from '@/types';
 
 type AuthContextValue = {
@@ -53,6 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .single();
     setProfile(data ?? null);
     setIsLoading(false);
+
+    registerForPushNotificationsAsync().then(token => {
+      if (token && token !== data?.push_token) {
+        savePushToken(userId, token);
+      }
+    });
   }
 
   return (
