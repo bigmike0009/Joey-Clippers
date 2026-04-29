@@ -1,16 +1,11 @@
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { queryClient } from '@/lib/queryClient';
 import { paperTheme } from '@/theme';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { staleTime: 1000 * 60 },
-  },
-});
 
 function RootNavigator() {
   const { session, isLoading } = useAuth();

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
+import { queryClient } from './queryClient';
 import type { Profile } from '@/types';
 
 type AuthContextValue = {
@@ -29,7 +30,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else setIsLoading(false);
     });
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
+    const { data: listener } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        queryClient.clear();
+      }
       setSession(s);
       if (s?.user) fetchProfile(s.user.id);
       else {

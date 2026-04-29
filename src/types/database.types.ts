@@ -264,6 +264,7 @@ export type Database = {
           id: string
           my_booking_id: string
           my_booking_status: string
+          my_waitlist_booking_id: string
           notes: string
           slot_count: number
           status: string

@@ -80,11 +80,15 @@ export function useCancelBooking() {
 
       queryClient.setQueryData(queryKeys.shopDays.upcoming(), (old: unknown) => {
         if (!Array.isArray(old)) return old;
-        return old.map((day) =>
-          day.my_booking_status === 'confirmed'
-            ? { ...day, confirmed_count: Math.max(0, (day.confirmed_count ?? 1) - 1), my_booking_id: null, my_booking_status: null }
-            : day,
-        );
+        return old.map((day) => {
+          if (day.my_booking_status === 'confirmed') {
+            return { ...day, confirmed_count: Math.max(0, (day.confirmed_count ?? 1) - 1), my_booking_id: null, my_booking_status: null };
+          }
+          if (day.my_booking_status === 'pending') {
+            return { ...day, my_waitlist_booking_id: null, my_booking_status: null };
+          }
+          return day;
+        });
       });
 
       return { previous };
@@ -97,6 +101,38 @@ export function useCancelBooking() {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
       queryClient.invalidateQueries({ queryKey: queryKeys.bookings.mine() });
+    },
+  });
+}
+
+export function useJoinWaitlist() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (shopDayId: string) => bookingsService.joinWaitlist(shopDayId),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
+    },
+  });
+}
+
+export function useApproveWaitlistBooking() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (bookingId: string) => bookingsService.approveWaitlistBooking(bookingId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.bookings.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
+    },
+  });
+}
+
+export function useWaitlistBookings() {
+  return useQuery({
+    queryKey: [...queryKeys.bookings.all, 'waitlist'],
+    queryFn: async () => {
+      const { data, error } = await bookingsService.getWaitlistBookings();
+      if (error) throw error;
+      return data ?? [];
     },
   });
 }
