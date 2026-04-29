@@ -1,18 +1,32 @@
+import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Button, Chip } from 'react-native-paper';
+import { Text, Button, Chip, Dialog, Portal, Snackbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
-import { signOut } from '@/services/auth';
+import { signOut, deleteAccount } from '@/services/auth';
 
 export default function ProfileScreen() {
   const { profile } = useAuth();
-
   const isAdmin = profile?.role === 'admin';
+
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [snackMessage, setSnackMessage] = useState('');
 
   async function handleSignOut() {
     await signOut();
-    // Navigation handled by AuthContext in _layout.tsx
+  }
+
+  async function handleDeleteAccount() {
+    setDeleteLoading(true);
+    const { error } = await deleteAccount();
+    setDeleteLoading(false);
+    setShowDeleteDialog(false);
+    if (error) {
+      setSnackMessage('Could not delete account. Please try again.');
+    }
+    // On success, AuthContext signs out automatically via onAuthStateChange
   }
 
   if (!profile) {
@@ -55,7 +69,42 @@ export default function ProfileScreen() {
         >
           Sign Out
         </Button>
+
+        <Button
+          mode="text"
+          onPress={() => setShowDeleteDialog(true)}
+          textColor={colors.text.disabled}
+          style={styles.deleteAccountBtn}
+          labelStyle={styles.deleteAccountLabel}
+        >
+          Delete Account
+        </Button>
       </View>
+
+      <Portal>
+        <Dialog visible={showDeleteDialog} onDismiss={() => setShowDeleteDialog(false)}>
+          <Dialog.Title>Delete account?</Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              This permanently removes your account and all your bookings. This cannot be undone.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setShowDeleteDialog(false)}>Cancel</Button>
+            <Button
+              textColor={colors.semantic.error}
+              loading={deleteLoading}
+              onPress={handleDeleteAccount}
+            >
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
+
+      <Snackbar visible={!!snackMessage} onDismiss={() => setSnackMessage('')} duration={3000}>
+        {snackMessage}
+      </Snackbar>
     </SafeAreaView>
   );
 }
@@ -139,5 +188,11 @@ const styles = StyleSheet.create({
   },
   signOutContent: {
     paddingVertical: spacing[1],
+  },
+  deleteAccountBtn: {
+    marginTop: spacing[2],
+  },
+  deleteAccountLabel: {
+    fontSize: typography.fontSize.sm,
   },
 });
