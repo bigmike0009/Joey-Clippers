@@ -1,13 +1,13 @@
 export const colors = {
   primary: {
-    default: '#D97706',
-    light: '#FCD34D',
-    dark: '#92400E',
+    default: '#B3261E',
+    light: '#FDE7E4',
+    dark: '#7A1C16',
   },
   secondary: {
-    default: '#0F766E',
-    light: '#5EEAD4',
-    dark: '#134E4A',
+    default: '#174A7C',
+    light: '#DCEBFA',
+    dark: '#0A2B4D',
   },
   neutral: {
     50: '#FAFAFA',
@@ -28,8 +28,8 @@ export const colors = {
     info: '#2563EB',
   },
   surface: {
-    background: '#FAFAFA',
-    card: '#FFFFFF',
+    background: '#7B3F32',
+    card: 'rgba(255,255,255,0.92)',
     overlay: 'rgba(0,0,0,0.5)',
   },
   text: {

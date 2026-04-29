@@ -223,7 +223,7 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface.background,
+    backgroundColor: 'transparent',
   },
   keyboardView: {
     flex: 1,

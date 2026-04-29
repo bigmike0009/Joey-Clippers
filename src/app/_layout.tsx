@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { PaperProvider } from 'react-native-paper';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { AppBackground } from '@/components/AppBackground';
 import { paperTheme } from '@/theme';
 
 const queryClient = new QueryClient({
@@ -25,10 +26,18 @@ function RootNavigator() {
   }, [session, isLoading, segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="day-detail/[id]" options={{ presentation: 'modal', headerShown: true, title: 'Day Detail' }} />
+      <Stack.Screen
+        name="day-detail/[id]"
+        options={{
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Day Detail',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      />
     </Stack>
   );
 }
@@ -38,7 +47,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <PaperProvider theme={paperTheme}>
         <AuthProvider>
-          <RootNavigator />
+          <AppBackground>
+            <RootNavigator />
+          </AppBackground>
           <StatusBar style="auto" />
         </AuthProvider>
       </PaperProvider>

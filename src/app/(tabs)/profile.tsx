@@ -69,7 +69,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.surface.background,
+    backgroundColor: 'transparent',
   },
   header: {
     paddingHorizontal: spacing[4],

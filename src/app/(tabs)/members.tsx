@@ -204,7 +204,7 @@ function formatDate(dateStr: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
   title: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.text.primary },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[3] },
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
     paddingBottom: spacing[2],
-    backgroundColor: colors.surface.background,
+    backgroundColor: 'rgba(255,255,255,0.82)',
   },
   listItem: { paddingHorizontal: spacing[4], backgroundColor: colors.surface.card },
   memberName: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.medium, color: colors.text.primary },
