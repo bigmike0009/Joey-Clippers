@@ -40,17 +40,17 @@ insert into public.invites (id, token, email, created_by, used_by, used_at, expi
 -- -----------------------------------------------------------------------
 -- Shop Days (6 total)
 -- -----------------------------------------------------------------------
-insert into public.shop_days (id, date, slot_count, status, notes, created_by) values
+insert into public.shop_days (id, date, start_time, slot_count, status, notes, created_by) values
   -- Upcoming open days
-  ('20000000-0000-0000-0000-000000000001', current_date + 3,  5, 'open',      null,                   '00000000-0000-0000-0000-000000000001'),
-  ('20000000-0000-0000-0000-000000000002', current_date + 7,  3, 'open',      'bring cash',           '00000000-0000-0000-0000-000000000001'),
-  ('20000000-0000-0000-0000-000000000003', current_date + 14, 4, 'open',      null,                   '00000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000001', current_date + 3,  '09:00', 5, 'open',      null,                   '00000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000002', current_date + 7,  '10:30', 3, 'open',      'bring cash',           '00000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000003', current_date + 14, '11:00', 4, 'open',      null,                   '00000000-0000-0000-0000-000000000001'),
   -- Full day (edge case: slot_count = 3, will have 3 confirmed bookings)
-  ('20000000-0000-0000-0000-000000000004', current_date + 5,  3, 'open',      'gonna be packed',      '00000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000004', current_date + 5,  '13:00', 3, 'open',      'gonna be packed',      '00000000-0000-0000-0000-000000000001'),
   -- Cancelled day with existing bookings (edge case)
-  ('20000000-0000-0000-0000-000000000005', current_date + 10, 4, 'cancelled', 'Joe is sick, sorry',   '00000000-0000-0000-0000-000000000001'),
+  ('20000000-0000-0000-0000-000000000005', current_date + 10, '14:30', 4, 'cancelled', 'Joe is sick, sorry',   '00000000-0000-0000-0000-000000000001'),
   -- Past day
-  ('20000000-0000-0000-0000-000000000006', current_date - 7,  4, 'open',      null,                   '00000000-0000-0000-0000-000000000001');
+  ('20000000-0000-0000-0000-000000000006', current_date - 7,  '09:30', 4, 'open',      null,                   '00000000-0000-0000-0000-000000000001');
 
 -- -----------------------------------------------------------------------
 -- Bookings (12 total)
@@ -81,13 +81,13 @@ insert into public.bookings (shop_day_id, member_id, status) values
 -- -----------------------------------------------------------------------
 -- Day Requests (5 total)
 -- -----------------------------------------------------------------------
-insert into public.day_requests (requested_by, requested_date, status, notes, responded_by, responded_at) values
+insert into public.day_requests (requested_by, requested_date, requested_time, status, notes, responded_by, responded_at) values
   -- Pending
-  ('00000000-0000-0000-0000-000000000002', current_date + 21, 'pending',  'Saturdays work best for me', null, null),
-  ('00000000-0000-0000-0000-000000000005', current_date + 28, 'pending',  null,                          null, null),
+  ('00000000-0000-0000-0000-000000000002', current_date + 21, '09:00', 'pending',  'Saturdays work best for me', null, null),
+  ('00000000-0000-0000-0000-000000000005', current_date + 28, '10:30', 'pending',  null,                          null, null),
   -- Approved (date matches an existing open shop day for the relationship edge case)
-  ('00000000-0000-0000-0000-000000000003', current_date + 3,  'approved', 'Can we do next weekend?',     '00000000-0000-0000-0000-000000000001', now() - interval '2 days'),
+  ('00000000-0000-0000-0000-000000000003', current_date + 3,  '09:00', 'approved', 'Can we do next weekend?',     '00000000-0000-0000-0000-000000000001', now() - interval '2 days'),
   -- Declined
-  ('00000000-0000-0000-0000-000000000004', current_date + 1,  'declined', 'Tomorrow?',                   '00000000-0000-0000-0000-000000000001', now() - interval '1 day'),
+  ('00000000-0000-0000-0000-000000000004', current_date + 1,  '15:00', 'declined', 'Tomorrow?',                   '00000000-0000-0000-0000-000000000001', now() - interval '1 day'),
   -- Different member, same date as another pending request (not a duplicate per DB constraint since different member)
-  ('00000000-0000-0000-0000-000000000006', current_date + 21, 'pending',  'I also want that Saturday!',  null, null);
+  ('00000000-0000-0000-0000-000000000006', current_date + 21, '11:00', 'pending',  'I also want that Saturday!',  null, null);
