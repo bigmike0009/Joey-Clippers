@@ -1,0 +1,24 @@
+For Admins:
+On the pop ups for create/edit shop days:
+When opening the keyboard to fill text fields- it is covering the submit buttons at the bottom of the pop up. Please Wrap this in a way where keyboard will never cover live user interface buttons
+
+Joe does not have access to revoke members as an admin.
+
+In the day detail screen:
+When removing an individual booking
+The confirmation pop up for remove booking/cancelling entire day is displaying beneath the day detail screen. Can't see or click it.
+
+Handling different types of requests:
+There are 2 different type of requests which need to be handled differently. When a user books an appointment on an existing day, that is fine and we are handling this correctly. When a user requests availability on a NEW DAY where Joe does not currently have the shop open, this needs to display as a different type of request for Joe. If approved, we will need to create an entry for a new shop day in addition to adding a booking for this day.
+
+For members that are not admins:
+When a shop day is full, there should still be a button to "Join Waitlist" for this day. This will create a new record in the bookings table with "pending" status. Joe can see this in the requests section and approve it moving it to confirmed status
+
+For both types of users:
+Navigation bar:
+Admins (Joe) should not be able to see th emy bookings tab
+Regular members should not be able to see the members tab
+
+Shop Days:
+Need to handle past days and Cancelled days. For shop days that have passed we need to display these in a 'Past Days section". For both this section and the Cancelled section we need to trim data that is over 2 months old
+For all booking and requesting data as well we need to not display data that is over 60 days old.
