@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest, useApproveDayRequest } from '@/hooks/useDayRequests';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { LoadingState } from '@/components/LoadingState';
 import { useMinimumLoading } from '@/hooks/useMinimumLoading';
 import { dateToTimeString, formatTime, timeStringToDate } from '@/lib/time';
@@ -29,6 +30,7 @@ function MemberRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useMyDayRequests();
   const showLoading = useMinimumLoading(isLoading);
   const submitMutation = useSubmitDayRequest();
+  const tabBarHeight = useTabBarHeight();
 
   const [formVisible, setFormVisible] = useState(false);
   const [date, setDate] = useState(tomorrow());
@@ -109,7 +111,7 @@ function MemberRequestsView() {
         contentContainerStyle={styles.list}
       />
 
-      <FAB icon="plus" style={styles.fab} color={colors.text.inverse} onPress={() => setFormVisible(true)} />
+      <FAB icon="plus" style={[styles.fab, { bottom: tabBarHeight + spacing[3] }]} color={colors.text.inverse} onPress={() => setFormVisible(true)} />
 
       <Portal>
         <Modal

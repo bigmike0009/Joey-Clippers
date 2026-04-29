@@ -6,6 +6,7 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useAuth } from '@/lib/AuthContext';
 import { useAllProfiles, useRevokeMember, useInviteList, useGenerateInvite, useDeleteInvite } from '@/hooks/useProfiles';
 import { LoadingState } from '@/components/LoadingState';
@@ -16,6 +17,7 @@ const INVITE_SCHEME = 'https://wdyseexaijxwmqukjbde.supabase.co/functions/v1/inv
 
 export default function MembersScreen() {
   const { profile: myProfile } = useAuth();
+  const tabBarHeight = useTabBarHeight();
 
   const { data: profiles, isLoading: profilesLoading, isError: profilesError, refetch: refetchProfiles, isRefetching } = useAllProfiles();
   const { data: invites, isLoading: invitesLoading, refetch: refetchInvites } = useInviteList();
@@ -167,7 +169,7 @@ export default function MembersScreen() {
 
       <FAB
         icon="account-plus"
-        style={styles.fab}
+        style={[styles.fab, { bottom: tabBarHeight + spacing[3] }]}
         color={colors.text.inverse}
         label="Invite"
         onPress={handleGenerateInvite}
