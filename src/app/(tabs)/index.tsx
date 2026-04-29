@@ -182,7 +182,7 @@ export default function HomeScreen() {
                         compact
                         textColor={colors.text.secondary}
                         style={styles.cancelBookingBtn}
-                        onPress={() => item.my_booking_id && handleCancelBooking(item.my_booking_id)}
+                        onPress={() => item.my_waitlist_booking_id && handleCancelBooking(item.my_waitlist_booking_id)}
                         loading={cancelBookingMutation.isPending}
                       >
                         Leave Waitlist

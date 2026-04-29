@@ -222,6 +222,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_day_request: {
+        Args: { p_request_id: string; p_slot_count: number }
+        Returns: undefined
+      }
       approve_waitlist_booking: {
         Args: { p_booking_id: string }
         Returns: undefined
@@ -260,6 +264,7 @@ export type Database = {
           id: string
           my_booking_id: string
           my_booking_status: string
+          my_waitlist_booking_id: string
           notes: string
           slot_count: number
           status: string

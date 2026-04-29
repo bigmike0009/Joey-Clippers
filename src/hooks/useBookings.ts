@@ -80,11 +80,15 @@ export function useCancelBooking() {
 
       queryClient.setQueryData(queryKeys.shopDays.upcoming(), (old: unknown) => {
         if (!Array.isArray(old)) return old;
-        return old.map((day) =>
-          day.my_booking_status === 'confirmed'
-            ? { ...day, confirmed_count: Math.max(0, (day.confirmed_count ?? 1) - 1), my_booking_id: null, my_booking_status: null }
-            : day,
-        );
+        return old.map((day) => {
+          if (day.my_booking_status === 'confirmed') {
+            return { ...day, confirmed_count: Math.max(0, (day.confirmed_count ?? 1) - 1), my_booking_id: null, my_booking_status: null };
+          }
+          if (day.my_booking_status === 'pending') {
+            return { ...day, my_waitlist_booking_id: null, my_booking_status: null };
+          }
+          return day;
+        });
       });
 
       return { previous };
