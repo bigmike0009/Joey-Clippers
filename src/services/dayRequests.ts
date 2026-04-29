@@ -38,3 +38,10 @@ export async function respondToDayRequest(
     .select()
     .single();
 }
+
+export async function approveDayRequest(requestId: string, slotCount: number) {
+  return supabase.rpc('approve_day_request', {
+    p_request_id: requestId,
+    p_slot_count: slotCount,
+  });
+}

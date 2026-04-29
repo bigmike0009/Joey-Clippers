@@ -55,3 +55,16 @@ export function useRespondToDayRequest() {
     },
   });
 }
+
+export function useApproveDayRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ requestId, slotCount }: { requestId: string; slotCount: number }) =>
+      dayRequestsService.approveDayRequest(requestId, slotCount),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.dayRequests.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
+    },
+  });
+}

@@ -21,7 +21,7 @@ function RootNavigator() {
     if (isLoading || !segments.length) return;
     const inAuthGroup = segments[0] === '(auth)';
     if (!session && !inAuthGroup) router.replace('/(auth)/login');
-    if (session && inAuthGroup) router.replace('/(tabs)/');
+    if (session && inAuthGroup) router.replace('/(tabs)');
   }, [session, isLoading, segments]);
 
   return (
