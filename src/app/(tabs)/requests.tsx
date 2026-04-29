@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Platform, RefreshControl, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, FlatList, StyleSheet, Platform, RefreshControl, Keyboard, ScrollView, Dimensions } from 'react-native';
 import {
   Text, Card, Button, Chip, FAB, ActivityIndicator, Portal, Modal,
   TextInput, HelperText, Snackbar, Badge,
@@ -20,6 +20,8 @@ export default function RequestsScreen() {
 
 // ─── Member View ──────────────────────────────────────────────────────────────
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
 function MemberRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useMyDayRequests();
   const submitMutation = useSubmitDayRequest();
@@ -30,8 +32,17 @@ function MemberRequestsView() {
   const [notes, setNotes] = useState('');
   const [dateError, setDateError] = useState('');
   const [snackMessage, setSnackMessage] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => { if (!formVisible) { setNotes(''); setDate(tomorrow()); setDateError(''); } }, [formVisible]);
+
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, e => setKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   async function handleSubmit() {
     const dateStr = toDateString(date);
@@ -74,46 +85,54 @@ function MemberRequestsView() {
       <FAB icon="plus" style={styles.fab} color={colors.text.inverse} onPress={() => setFormVisible(true)} />
 
       <Portal>
-        <Modal visible={formVisible} onDismiss={() => setFormVisible(false)} contentContainerStyle={styles.modal}>
-          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <Modal
+          visible={formVisible}
+          onDismiss={() => setFormVisible(false)}
+          contentContainerStyle={[
+            styles.modal,
+            {
+              maxHeight: SCREEN_HEIGHT - keyboardHeight - spacing[8],
+              transform: [{ translateY: keyboardHeight > 0 ? -(keyboardHeight / 2) : 0 }],
+            },
+          ]}
+        >
           <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <Text style={styles.modalTitle}>Request a Day</Text>
+            <Text style={styles.modalTitle}>Request a Day</Text>
 
-          <Text style={styles.label}>Date</Text>
-          <Button mode="outlined" onPress={() => setShowPicker(true)} style={styles.dateButton} textColor={colors.text.primary}>
-            {formatDisplayDate(date)}
-          </Button>
-          {dateError ? <HelperText type="error">{dateError}</HelperText> : null}
-
-          {showPicker && (
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              minimumDate={tomorrow()}
-              onChange={(_e, d) => { setShowPicker(Platform.OS === 'ios'); if (d) setDate(d); }}
-            />
-          )}
-
-          <TextInput
-            label="Notes (optional)"
-            value={notes}
-            onChangeText={setNotes}
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.neutral[300]}
-            activeOutlineColor={colors.primary.default}
-            placeholder="e.g. Saturday mornings work best"
-          />
-
-          <View style={styles.modalActions}>
-            <Button onPress={() => setFormVisible(false)} textColor={colors.text.secondary}>Cancel</Button>
-            <Button mode="contained" onPress={handleSubmit} loading={submitMutation.isPending} disabled={submitMutation.isPending} buttonColor={colors.primary.default}>
-              Submit
+            <Text style={styles.label}>Date</Text>
+            <Button mode="outlined" onPress={() => setShowPicker(true)} style={styles.dateButton} textColor={colors.text.primary}>
+              {formatDisplayDate(date)}
             </Button>
-          </View>
+            {dateError ? <HelperText type="error">{dateError}</HelperText> : null}
+
+            {showPicker && (
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={tomorrow()}
+                onChange={(_e, d) => { setShowPicker(Platform.OS === 'ios'); if (d) setDate(d); }}
+              />
+            )}
+
+            <TextInput
+              label="Notes (optional)"
+              value={notes}
+              onChangeText={setNotes}
+              mode="outlined"
+              style={styles.input}
+              outlineColor={colors.neutral[300]}
+              activeOutlineColor={colors.primary.default}
+              placeholder="e.g. Saturday mornings work best"
+            />
+
+            <View style={styles.modalActions}>
+              <Button onPress={() => setFormVisible(false)} textColor={colors.text.secondary}>Cancel</Button>
+              <Button mode="contained" onPress={handleSubmit} loading={submitMutation.isPending} disabled={submitMutation.isPending} buttonColor={colors.primary.default}>
+                Submit
+              </Button>
+            </View>
           </ScrollView>
-          </KeyboardAvoidingView>
         </Modal>
       </Portal>
 

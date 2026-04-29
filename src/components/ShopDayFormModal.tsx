@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, StyleSheet, Platform, Keyboard, ScrollView, Dimensions } from 'react-native';
 import { Modal, Portal, Text, TextInput, Button, HelperText } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { ShopDay } from '@/types';
@@ -13,6 +13,8 @@ type Props = {
   existing?: ShopDay | null;
   existingDates?: string[];
 };
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 export function ShopDayFormModal({
   visible,
@@ -31,6 +33,7 @@ export function ShopDayFormModal({
   const [slotCount, setSlotCount] = useState(existing ? String(existing.slot_count) : '');
   const [notes, setNotes] = useState(existing?.notes ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
     if (visible) {
@@ -40,6 +43,14 @@ export function ShopDayFormModal({
       setErrors({});
     }
   }, [visible, existing]);
+
+  useEffect(() => {
+    const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvt = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+    const show = Keyboard.addListener(showEvt, e => setKeyboardHeight(e.endCoordinates.height));
+    const hide = Keyboard.addListener(hideEvt, () => setKeyboardHeight(0));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   function validate() {
     const errs: Record<string, string> = {};
@@ -69,85 +80,93 @@ export function ShopDayFormModal({
     onSubmit(toDateString(date), slots, notes.trim() || undefined);
   }
 
+  const maxHeight = SCREEN_HEIGHT - keyboardHeight - spacing[8];
+  const translateY = keyboardHeight > 0 ? -(keyboardHeight / 2) : 0;
+
   return (
     <Portal>
-      <Modal visible={visible} onDismiss={onDismiss} contentContainerStyle={styles.container}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>{isEdit ? 'Edit Shop Day' : 'New Shop Day'}</Text>
+      <Modal
+        visible={visible}
+        onDismiss={onDismiss}
+        contentContainerStyle={[
+          styles.container,
+          { maxHeight, transform: [{ translateY }] },
+        ]}
+      >
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>{isEdit ? 'Edit Shop Day' : 'New Shop Day'}</Text>
 
-        {!isEdit && (
+          {!isEdit && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Date</Text>
+              <Button
+                mode="outlined"
+                onPress={() => setShowPicker(true)}
+                style={styles.dateButton}
+                textColor={colors.text.primary}
+              >
+                {formatDisplayDate(date)}
+              </Button>
+              {errors.date ? <HelperText type="error">{errors.date}</HelperText> : null}
+
+              {showPicker && (
+                <DateTimePicker
+                  value={date}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minimumDate={tomorrow()}
+                  onChange={(_event, selected) => {
+                    setShowPicker(Platform.OS === 'ios');
+                    if (selected) setDate(selected);
+                  }}
+                />
+              )}
+            </View>
+          )}
+
           <View style={styles.field}>
-            <Text style={styles.label}>Date</Text>
-            <Button
+            <TextInput
+              label="Available slots"
+              value={slotCount}
+              onChangeText={setSlotCount}
+              keyboardType="number-pad"
               mode="outlined"
-              onPress={() => setShowPicker(true)}
-              style={styles.dateButton}
-              textColor={colors.text.primary}
-            >
-              {formatDisplayDate(date)}
-            </Button>
-            {errors.date ? <HelperText type="error">{errors.date}</HelperText> : null}
-
-            {showPicker && (
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                minimumDate={tomorrow()}
-                onChange={(_event, selected) => {
-                  setShowPicker(Platform.OS === 'ios');
-                  if (selected) setDate(selected);
-                }}
-              />
-            )}
+              style={styles.input}
+              outlineColor={colors.neutral[300]}
+              activeOutlineColor={colors.primary.default}
+              error={!!errors.slotCount}
+            />
+            {errors.slotCount ? <HelperText type="error">{errors.slotCount}</HelperText> : null}
           </View>
-        )}
 
-        <View style={styles.field}>
-          <TextInput
-            label="Available slots"
-            value={slotCount}
-            onChangeText={setSlotCount}
-            keyboardType="number-pad"
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.neutral[300]}
-            activeOutlineColor={colors.primary.default}
-            error={!!errors.slotCount}
-          />
-          {errors.slotCount ? <HelperText type="error">{errors.slotCount}</HelperText> : null}
-        </View>
+          <View style={styles.field}>
+            <TextInput
+              label="Notes (optional)"
+              value={notes}
+              onChangeText={setNotes}
+              mode="outlined"
+              style={styles.input}
+              outlineColor={colors.neutral[300]}
+              activeOutlineColor={colors.primary.default}
+              placeholder="e.g. bring cash"
+            />
+          </View>
 
-        <View style={styles.field}>
-          <TextInput
-            label="Notes (optional)"
-            value={notes}
-            onChangeText={setNotes}
-            mode="outlined"
-            style={styles.input}
-            outlineColor={colors.neutral[300]}
-            activeOutlineColor={colors.primary.default}
-            placeholder="e.g. bring cash"
-          />
-        </View>
-
-        <View style={styles.actions}>
-          <Button onPress={onDismiss} textColor={colors.text.secondary} disabled={loading}>
-            Cancel
-          </Button>
-          <Button
-            mode="contained"
-            onPress={handleSubmit}
-            loading={loading}
-            disabled={loading}
-            buttonColor={colors.primary.default}
-          >
-            {isEdit ? 'Save' : 'Create'}
-          </Button>
-        </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
+          <View style={styles.actions}>
+            <Button onPress={onDismiss} textColor={colors.text.secondary} disabled={loading}>
+              Cancel
+            </Button>
+            <Button
+              mode="contained"
+              onPress={handleSubmit}
+              loading={loading}
+              disabled={loading}
+              buttonColor={colors.primary.default}
+            >
+              {isEdit ? 'Save' : 'Create'}
+            </Button>
+          </View>
+        </ScrollView>
       </Modal>
     </Portal>
   );
