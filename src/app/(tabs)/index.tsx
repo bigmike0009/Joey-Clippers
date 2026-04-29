@@ -21,12 +21,14 @@ import { ShopDayFormModal } from '@/components/ShopDayFormModal';
 import { LoadingState } from '@/components/LoadingState';
 import { getBookingErrorMessage } from '@/lib/errors';
 import { useMinimumLoading } from '@/hooks/useMinimumLoading';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { formatTime } from '@/lib/time';
 import type { ShopDay, ShopDaySummary } from '@/types';
 
 export default function HomeScreen() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
+  const tabBarHeight = useTabBarHeight();
   const router = useRouter();
 
   const { data: shopDays, isLoading, isError, refetch, isRefetching } = useUpcomingShopDaysWithBookings();
@@ -285,7 +287,7 @@ export default function HomeScreen() {
       />
 
       {isAdmin && (
-        <FAB icon="plus" style={styles.fab} color={colors.text.inverse} onPress={() => setFormVisible(true)} />
+        <FAB icon="plus" style={[styles.fab, { bottom: tabBarHeight + spacing[3] }]} color={colors.text.inverse} onPress={() => setFormVisible(true)} />
       )}
 
       <ShopDayFormModal
