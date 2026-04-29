@@ -1,0 +1,15 @@
+App Privacy (Data Types) Draft
+Mark as collected for app functionality:
+
+Contact Info
+Email Address
+
+User Content
+Name (profile full name)
+Booking and request details entered by user
+
+Identifiers
+User ID (account identifier)
+
+Diagnostics
+Only if you actually collect crash/diagnostic telemetry via a service. If not, mark No.
