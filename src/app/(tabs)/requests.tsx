@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Platform, RefreshControl, Keyboard, ScrollView, Dimensions } from 'react-native';
+import { View, FlatList, StyleSheet, Platform, RefreshControl, KeyboardAvoidingView,  Keyboard, ScrollView, Dimensions } from 'react-native';
 import {
   Text, Card, Button, Chip, FAB, ActivityIndicator, Portal, Modal,
   TextInput, HelperText, Snackbar, Badge,
@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
-import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest } from '@/hooks/useDayRequests';
+import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest, useApproveDayRequest } from '@/hooks/useDayRequests';
 import type { DayRequest } from '@/types';
 
 export default function RequestsScreen() {
@@ -18,7 +18,7 @@ export default function RequestsScreen() {
   return isAdmin ? <AdminRequestsView /> : <MemberRequestsView />;
 }
 
-// ─── Member View ──────────────────────────────────────────────────────────────
+// ─── Member View ─────────────────��─────────────────────────────────��──────────
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
@@ -141,18 +141,40 @@ function MemberRequestsView() {
   );
 }
 
-// ─── Admin View ───────────────────────────────────────────────────────────────
+// ─── Admin View ───────────────────���───────────────────────────────────��───────
 
 function AdminRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useAllDayRequests();
-  const respondMutation = useRespondToDayRequest();
+  const declineMutation = useRespondToDayRequest();
+  const approveMutation = useApproveDayRequest();
+
+  const [approvingRequest, setApprovingRequest] = useState<(DayRequest & { profiles: { full_name: string } | null }) | null>(null);
+  const [slotCount, setSlotCount] = useState('3');
+  const [slotCountError, setSlotCountError] = useState('');
   const [snackMessage, setSnackMessage] = useState('');
 
   const pendingCount = requests?.filter(r => r.status === 'pending').length ?? 0;
 
-  async function handleRespond(id: string, status: 'approved' | 'declined') {
-    const { error } = await respondMutation.mutateAsync({ id, status });
-    setSnackMessage(error ? 'Could not respond. Try again.' : status === 'approved' ? 'Request approved.' : 'Request declined.');
+  async function handleDecline(id: string) {
+    const { error } = await declineMutation.mutateAsync({ id, status: 'declined' });
+    setSnackMessage(error ? 'Could not decline. Try again.' : 'Request declined.');
+  }
+
+  async function handleApproveSubmit() {
+    if (!approvingRequest) return;
+    const count = parseInt(slotCount, 10);
+    if (!count || count < 1 || count > 20) {
+      setSlotCountError('Enter a number between 1 and 20.');
+      return;
+    }
+    setSlotCountError('');
+    const { error } = await approveMutation.mutateAsync({ requestId: approvingRequest.id, slotCount: count });
+    if (error) {
+      setSnackMessage('Could not approve. Try again.');
+    } else {
+      setApprovingRequest(null);
+      setSnackMessage('Request approved — shop day created!');
+    }
   }
 
   if (isLoading) return <ScreenShell title="Requests" badge={0}><View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View></ScreenShell>;
@@ -176,19 +198,66 @@ function AdminRequestsView() {
         renderItem={({ item }) => (
           <AdminRequestCard
             request={item as DayRequest & { profiles: { full_name: string } | null }}
-            onApprove={() => handleRespond(item.id, 'approved')}
-            onDecline={() => handleRespond(item.id, 'declined')}
-            responding={respondMutation.isPending}
+            onApprove={() => {
+              setSlotCount('3');
+              setSlotCountError('');
+              setApprovingRequest(item as DayRequest & { profiles: { full_name: string } | null });
+            }}
+            onDecline={() => handleDecline(item.id)}
+            responding={declineMutation.isPending || approveMutation.isPending}
           />
         )}
         contentContainerStyle={styles.list}
       />
+
+      <Portal>
+        <Modal
+          visible={!!approvingRequest}
+          onDismiss={() => setApprovingRequest(null)}
+          contentContainerStyle={styles.modal}
+        >
+          <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+              <Text style={styles.modalTitle}>Open Shop Day</Text>
+              {approvingRequest && (
+                <Text style={styles.modalSubtitle}>
+                  {formatDate(approvingRequest.requested_date)} — requested by {approvingRequest.profiles?.full_name ?? 'Unknown'}
+                </Text>
+              )}
+              <TextInput
+                label="Number of slots"
+                value={slotCount}
+                onChangeText={text => { setSlotCount(text.replace(/[^0-9]/g, '')); setSlotCountError(''); }}
+                mode="outlined"
+                keyboardType="number-pad"
+                style={styles.input}
+                outlineColor={colors.neutral[300]}
+                activeOutlineColor={colors.primary.default}
+              />
+              {slotCountError ? <HelperText type="error">{slotCountError}</HelperText> : null}
+              <View style={styles.modalActions}>
+                <Button onPress={() => setApprovingRequest(null)} textColor={colors.text.secondary}>Cancel</Button>
+                <Button
+                  mode="contained"
+                  onPress={handleApproveSubmit}
+                  loading={approveMutation.isPending}
+                  disabled={approveMutation.isPending}
+                  buttonColor={colors.secondary.default}
+                >
+                  Open Day
+                </Button>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </Modal>
+      </Portal>
+
       <Snackbar visible={!!snackMessage} onDismiss={() => setSnackMessage('')} duration={3000}>{snackMessage}</Snackbar>
     </ScreenShell>
   );
 }
 
-// ─── Shared Components ────────────────────────────────────────────────────────
+// ─── Shared Components ─────────────────────���──────────────────────────────────
 
 function ScreenShell({ title, badge, children }: { title: string; badge?: number; children: React.ReactNode }) {
   return (
@@ -255,6 +324,9 @@ function AdminRequestCard({
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardRow}>
           <View style={styles.flex}>
+            <View style={styles.requestTypeRow}>
+              <Chip compact style={styles.newDayChip} textStyle={styles.newDayChipText}>New Day</Chip>
+            </View>
             <Text style={styles.cardDate}>{formatDate(request.requested_date)}</Text>
             <Text style={styles.memberName}>{request.profiles?.full_name ?? 'Unknown'}</Text>
           </View>
@@ -284,7 +356,7 @@ function AdminRequestCard({
   );
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────���─────────────────────────────────────���─────────
 
 function tomorrow() { const d = new Date(); d.setDate(d.getDate() + 1); return d; }
 function toDateString(d: Date) { return d.toISOString().split('T')[0]; }
@@ -313,6 +385,9 @@ const styles = StyleSheet.create({
   dimCard: { opacity: 0.7 },
   cardContent: { gap: spacing[2] },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  requestTypeRow: { marginBottom: spacing[1] },
+  newDayChip: { backgroundColor: colors.primary.light, alignSelf: 'flex-start' },
+  newDayChipText: { fontSize: typography.fontSize.xs, color: colors.primary.dark, fontWeight: typography.fontWeight.medium },
   cardDate: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary },
   memberName: { fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing[1] },
   notes: { fontSize: typography.fontSize.sm, color: colors.text.secondary, fontStyle: 'italic' },
@@ -324,6 +399,7 @@ const styles = StyleSheet.create({
   fab: { position: 'absolute', right: spacing[4], bottom: spacing[6], backgroundColor: colors.primary.default, borderRadius: radius.full },
   modal: { backgroundColor: colors.surface.card, margin: spacing[4], borderRadius: radius.xl, padding: spacing[6], gap: spacing[3] },
   modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing[1] },
+  modalSubtitle: { fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing[2] },
   label: { fontSize: typography.fontSize.sm, color: colors.text.secondary },
   dateButton: { borderColor: colors.neutral[300], borderRadius: radius.md },
   input: { backgroundColor: colors.surface.card },
