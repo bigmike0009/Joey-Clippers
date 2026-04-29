@@ -33,6 +33,14 @@ function RootNavigator() {
           contentStyle: { backgroundColor: 'transparent' },
         }}
       />
+      <Stack.Screen
+        name="register-preview"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      />
     </Stack>
   );
 }

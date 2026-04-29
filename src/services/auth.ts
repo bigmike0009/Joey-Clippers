@@ -8,8 +8,15 @@ export async function signUp(email: string, password: string, fullName: string) 
   return supabase.auth.signUp({
     email,
     password,
-    options: { data: { full_name: fullName } },
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: 'joeys-clippers:///login',
+    },
   });
+}
+
+export async function resendConfirmation(email: string) {
+  return supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: 'joeys-clippers:///login' } });
 }
 
 export async function signOut() {

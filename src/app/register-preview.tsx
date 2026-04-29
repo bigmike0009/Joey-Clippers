@@ -1,27 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Text, TextInput, Button, HelperText, Banner } from 'react-native-paper';
+import { Text, TextInput, Button, HelperText, Chip, Snackbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { colors, spacing, typography } from '@/theme';
-import { signUp, signOut } from '@/services/auth';
-import { getInvitePreview, redeemInvite } from '@/services/invites';
-import { LoadingState } from '@/components/LoadingState';
-import { useMinimumLoading } from '@/hooks/useMinimumLoading';
+import { useRouter } from 'expo-router';
+import { colors, spacing, typography, radius } from '@/theme';
 
-type InviteState =
-  | { status: 'checking' }
-  | { status: 'valid'; email: string | null }
-  | { status: 'invalid' }
-  | { status: 'no_token' };
-
-export default function RegisterScreen() {
-  const { token } = useLocalSearchParams<{ token?: string }>();
+export default function RegisterPreviewScreen() {
   const router = useRouter();
-
-  const [invite, setInvite] = useState<InviteState>(
-    token ? { status: 'checking' } : { status: 'no_token' },
-  );
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,26 +14,7 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [submitError, setSubmitError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const showInviteChecking = useMinimumLoading(invite.status === 'checking');
-
-  useEffect(() => {
-    if (!token) return;
-    getInvitePreview(token).then(({ data, error }) => {
-      if (error || !data?.length) {
-        setInvite({ status: 'invalid' });
-        return;
-      }
-      const preview = data[0];
-      if (!preview.is_valid) {
-        setInvite({ status: 'invalid' });
-        return;
-      }
-      setInvite({ status: 'valid', email: preview.email ?? null });
-      if (preview.email) setEmail(preview.email);
-    });
-  }, [token]);
+  const [snackVisible, setSnackVisible] = useState(false);
 
   function validate() {
     const errors: Record<string, string> = {};
@@ -61,64 +27,34 @@ export default function RegisterScreen() {
     return errors;
   }
 
-  async function handleRegister() {
+  function handleSubmit() {
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length) return;
-
-    setSubmitError('');
-    setLoading(true);
-
-    const { error: signUpError } = await signUp(email.trim(), password, fullName.trim());
-    if (signUpError) {
-      setLoading(false);
-      setSubmitError(signUpError.message ?? 'Registration failed. Please try again.');
-      return;
-    }
-
-    if (token) {
-      await redeemInvite(token);
-    }
-
-    // Sign out so the auto-confirmed session doesn't bypass the login screen
-    await signOut();
-    router.replace({ pathname: '/(auth)/login', params: { registered: '1' } });
-  }
-
-  if (invite.status === 'no_token') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <Text style={styles.errorTitle}>Invite required</Text>
-          <Text style={styles.errorBody}>
-            Registration is invite-only. Ask Joe for a link.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (showInviteChecking) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <LoadingState label="Checking your invite..." />
-      </SafeAreaView>
-    );
-  }
-
-  if (invite.status === 'invalid') {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <Text style={styles.errorTitle}>Invite expired or already used</Text>
-          <Text style={styles.errorBody}>Ask Joe for a fresh invite link.</Text>
-        </View>
-      </SafeAreaView>
-    );
+    setSnackVisible(true);
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <View style={styles.topBar}>
+        <Chip
+          icon="eye"
+          style={styles.previewChip}
+          textStyle={styles.previewChipText}
+          compact
+        >
+          Admin Preview
+        </Chip>
+        <Button
+          mode="text"
+          compact
+          textColor={colors.text.secondary}
+          onPress={() => router.back()}
+        >
+          Close
+        </Button>
+      </View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
@@ -130,12 +66,6 @@ export default function RegisterScreen() {
         >
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Create your account</Text>
-
-            {submitError ? (
-              <Banner visible icon="alert-circle" style={styles.banner}>
-                {submitError}
-              </Banner>
-            ) : null}
 
             <View style={styles.form}>
               <TextInput
@@ -209,9 +139,7 @@ export default function RegisterScreen() {
 
               <Button
                 mode="contained"
-                onPress={handleRegister}
-                loading={loading}
-                disabled={loading}
+                onPress={handleSubmit}
                 style={styles.button}
                 contentStyle={styles.buttonContent}
                 buttonColor={colors.primary.default}
@@ -223,6 +151,15 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Snackbar
+        visible={snackVisible}
+        onDismiss={() => setSnackVisible(false)}
+        duration={3000}
+        action={{ label: 'Close', onPress: () => router.back() }}
+      >
+        Preview mode — no account was created.
+      </Snackbar>
     </SafeAreaView>
   );
 }
@@ -232,6 +169,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: spacing[4],
+    paddingTop: spacing[3],
+    paddingBottom: spacing[1],
+  },
+  previewChip: {
+    backgroundColor: colors.primary.light,
+    borderRadius: radius.full,
+  },
+  previewChipText: {
+    fontSize: typography.fontSize.xs,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary.dark,
+  },
   keyboardView: {
     flex: 1,
   },
@@ -240,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingHorizontal: spacing[6],
-    paddingTop: spacing[6],
+    paddingTop: spacing[4],
     paddingBottom: spacing[5],
   },
   card: {
@@ -260,28 +214,6 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: spacing[4],
     textAlign: 'center',
-  },
-  centered: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing[6],
-    gap: spacing[3],
-  },
-  errorTitle: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    textAlign: 'center',
-  },
-  errorBody: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    textAlign: 'center',
-  },
-  banner: {
-    marginBottom: spacing[4],
-    backgroundColor: '#FEE2E2',
   },
   form: {
     gap: spacing[1],

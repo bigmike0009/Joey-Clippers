@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Text, TextInput, Button, HelperText } from 'react-native-paper';
+import { Text, TextInput, Button, HelperText, Snackbar } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useLocalSearchParams } from 'expo-router';
 import { colors, spacing, typography } from '@/theme';
 import { signIn } from '@/services/auth';
 import { loginSlogans } from '@/content/loginSlogans';
 
 export default function LoginScreen() {
+  const { registered } = useLocalSearchParams<{ registered?: string }>();
+
   const subtitle = useMemo(() => {
     const sloganIndex = Math.floor(Math.random() * loginSlogans.length);
     return loginSlogans[sloganIndex];
@@ -17,6 +20,7 @@ export default function LoginScreen() {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [snackVisible, setSnackVisible] = useState(registered === '1');
 
   async function handleSignIn() {
     if (!email.trim() || !password) {
@@ -105,6 +109,14 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Snackbar
+        visible={snackVisible}
+        onDismiss={() => setSnackVisible(false)}
+        duration={4000}
+      >
+        Account created! Sign in to get started. ✂️
+      </Snackbar>
     </SafeAreaView>
   );
 }

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, Button, Chip, Dialog, Portal, Snackbar } from 'react-native-paper';
+import { Text, Button, Chip, Dialog, Portal, Snackbar, Divider } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { signOut, deleteAccount } from '@/services/auth';
 
 export default function ProfileScreen() {
   const { profile } = useAuth();
+  const router = useRouter();
   const isAdmin = profile?.role === 'admin';
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -79,6 +81,21 @@ export default function ProfileScreen() {
         >
           Delete Account
         </Button>
+
+        {isAdmin ? (
+          <>
+            <Divider style={styles.adminDivider} />
+            <Button
+              mode="text"
+              icon="eye-outline"
+              onPress={() => router.push('/register-preview')}
+              textColor={colors.text.secondary}
+              labelStyle={styles.adminPreviewLabel}
+            >
+              Preview sign-up screen
+            </Button>
+          </>
+        ) : null}
       </View>
 
       <Portal>
@@ -193,6 +210,13 @@ const styles = StyleSheet.create({
     marginTop: spacing[2],
   },
   deleteAccountLabel: {
+    fontSize: typography.fontSize.sm,
+  },
+  adminDivider: {
+    alignSelf: 'stretch',
+    marginTop: spacing[2],
+  },
+  adminPreviewLabel: {
     fontSize: typography.fontSize.sm,
   },
 });
