@@ -32,25 +32,27 @@ export function useCreateShopDay() {
   return useMutation({
     mutationFn: ({
       date,
+      startTime,
       slotCount,
       notes,
     }: {
       date: string;
+      startTime: string;
       slotCount: number;
       notes?: string;
-    }) => shopDaysService.createShopDay(user!.id, date, slotCount, notes),
+    }) => shopDaysService.createShopDay(user!.id, date, startTime, slotCount, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.all });
     },
   });
 }
 
-export function useUpdateShopDaySlots() {
+export function useUpdateShopDay() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, slotCount }: { id: string; slotCount: number }) =>
-      shopDaysService.updateShopDaySlots(id, slotCount),
+    mutationFn: ({ id, startTime, slotCount }: { id: string; startTime: string; slotCount: number }) =>
+      shopDaysService.updateShopDay(id, startTime, slotCount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.all });
     },

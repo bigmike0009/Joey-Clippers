@@ -63,6 +63,7 @@ export type Database = {
           notes: string | null
           requested_by: string
           requested_date: string
+          requested_time: string
           responded_at: string | null
           responded_by: string | null
           status: string
@@ -73,6 +74,7 @@ export type Database = {
           notes?: string | null
           requested_by: string
           requested_date: string
+          requested_time?: string
           responded_at?: string | null
           responded_by?: string | null
           status?: string
@@ -83,6 +85,7 @@ export type Database = {
           notes?: string | null
           requested_by?: string
           requested_date?: string
+          requested_time?: string
           responded_at?: string | null
           responded_by?: string | null
           status?: string
@@ -184,6 +187,7 @@ export type Database = {
           id: string
           notes: string | null
           slot_count: number
+          start_time: string
           status: string
           updated_at: string
         }
@@ -194,6 +198,7 @@ export type Database = {
           id?: string
           notes?: string | null
           slot_count: number
+          start_time?: string
           status?: string
           updated_at?: string
         }
@@ -204,6 +209,7 @@ export type Database = {
           id?: string
           notes?: string | null
           slot_count?: number
+          start_time?: string
           status?: string
           updated_at?: string
         }
@@ -223,7 +229,7 @@ export type Database = {
     }
     Functions: {
       approve_day_request: {
-        Args: { p_request_id: string; p_slot_count: number }
+        Args: { p_request_id: string; p_slot_count: number; p_start_time?: string }
         Returns: undefined
       }
       approve_waitlist_booking: {
@@ -251,6 +257,7 @@ export type Database = {
           shop_day_id: string
           shop_day_status: string
           slot_count: number
+          start_time: string
         }[]
       }
       get_my_role: { Args: never; Returns: string }
@@ -267,6 +274,7 @@ export type Database = {
           my_waitlist_booking_id: string
           notes: string
           slot_count: number
+          start_time: string
           status: string
           updated_at: string
         }[]
@@ -282,6 +290,7 @@ export type Database = {
           requested_at: string
           shop_day_id: string
           slot_count: number
+          start_time: string
         }[]
       }
       join_waitlist: { Args: { p_shop_day_id: string }; Returns: string }

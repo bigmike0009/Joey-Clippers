@@ -4,11 +4,12 @@ import { Modal, Portal, Text, TextInput, Button, HelperText } from 'react-native
 import DateTimePicker from '@react-native-community/datetimepicker';
 import type { ShopDay } from '@/types';
 import { colors, spacing, typography, radius } from '@/theme';
+import { dateToTimeString, formatTime, timeStringToDate } from '@/lib/time';
 
 type Props = {
   visible: boolean;
   onDismiss: () => void;
-  onSubmit: (date: string, slotCount: number, notes?: string) => void;
+  onSubmit: (date: string, startTime: string, slotCount: number, notes?: string) => void;
   loading?: boolean;
   existing?: ShopDay | null;
   existingDates?: string[];
@@ -29,7 +30,9 @@ export function ShopDayFormModal({
   const [date, setDate] = useState<Date>(
     existing ? new Date(existing.date + 'T12:00:00') : tomorrow(),
   );
-  const [showPicker, setShowPicker] = useState(false);
+  const [startTime, setStartTime] = useState<Date>(timeStringToDate(existing?.start_time));
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [slotCount, setSlotCount] = useState(existing ? String(existing.slot_count) : '');
   const [notes, setNotes] = useState(existing?.notes ?? '');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -38,6 +41,7 @@ export function ShopDayFormModal({
   useEffect(() => {
     if (visible) {
       setDate(existing ? new Date(existing.date + 'T12:00:00') : tomorrow());
+      setStartTime(timeStringToDate(existing?.start_time));
       setSlotCount(existing ? String(existing.slot_count) : '');
       setNotes(existing?.notes ?? '');
       setErrors({});
@@ -77,7 +81,17 @@ export function ShopDayFormModal({
     if (Object.keys(errs).length) return;
 
     const slots = parseInt(slotCount, 10);
-    onSubmit(toDateString(date), slots, notes.trim() || undefined);
+    onSubmit(toDateString(date), dateToTimeString(startTime), slots, notes.trim() || undefined);
+  }
+
+  function closePickers() {
+    setShowDatePicker(false);
+    setShowTimePicker(false);
+  }
+
+  function handleDismiss() {
+    closePickers();
+    onDismiss();
   }
 
   const maxHeight = SCREEN_HEIGHT - keyboardHeight - spacing[8];
@@ -87,7 +101,7 @@ export function ShopDayFormModal({
     <Portal>
       <Modal
         visible={visible}
-        onDismiss={onDismiss}
+        onDismiss={handleDismiss}
         contentContainerStyle={[
           styles.container,
           { maxHeight, transform: [{ translateY }] },
@@ -101,7 +115,10 @@ export function ShopDayFormModal({
               <Text style={styles.label}>Date</Text>
               <Button
                 mode="outlined"
-                onPress={() => setShowPicker(true)}
+                onPress={() => {
+                  setShowTimePicker(false);
+                  setShowDatePicker(true);
+                }}
                 style={styles.dateButton}
                 textColor={colors.text.primary}
               >
@@ -109,14 +126,14 @@ export function ShopDayFormModal({
               </Button>
               {errors.date ? <HelperText type="error">{errors.date}</HelperText> : null}
 
-              {showPicker && (
+              {showDatePicker && (
                 <DateTimePicker
                   value={date}
                   mode="date"
                   display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                   minimumDate={tomorrow()}
                   onChange={(_event, selected) => {
-                    setShowPicker(Platform.OS === 'ios');
+                    setShowDatePicker(Platform.OS === 'ios');
                     if (selected) setDate(selected);
                   }}
                 />
@@ -125,10 +142,38 @@ export function ShopDayFormModal({
           )}
 
           <View style={styles.field}>
+            <Text style={styles.label}>Start time</Text>
+            <Button
+              mode="outlined"
+              onPress={() => {
+                setShowDatePicker(false);
+                setShowTimePicker(true);
+              }}
+              style={styles.dateButton}
+              textColor={colors.text.primary}
+            >
+              {formatTime(dateToTimeString(startTime))}
+            </Button>
+            {showTimePicker && (
+              <DateTimePicker
+                value={startTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minuteInterval={5}
+                onChange={(_event, selected) => {
+                  setShowTimePicker(Platform.OS === 'ios');
+                  if (selected) setStartTime(selected);
+                }}
+              />
+            )}
+          </View>
+
+          <View style={styles.field}>
             <TextInput
               label="Available slots"
               value={slotCount}
               onChangeText={setSlotCount}
+              onFocus={closePickers}
               keyboardType="number-pad"
               mode="outlined"
               style={styles.input}
@@ -144,6 +189,7 @@ export function ShopDayFormModal({
               label="Notes (optional)"
               value={notes}
               onChangeText={setNotes}
+              onFocus={closePickers}
               mode="outlined"
               style={styles.input}
               outlineColor={colors.neutral[300]}
@@ -153,7 +199,7 @@ export function ShopDayFormModal({
           </View>
 
           <View style={styles.actions}>
-            <Button onPress={onDismiss} textColor={colors.text.secondary} disabled={loading}>
+            <Button onPress={handleDismiss} textColor={colors.text.secondary} disabled={loading}>
               Cancel
             </Button>
             <Button
