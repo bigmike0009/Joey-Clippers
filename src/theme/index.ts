@@ -2,14 +2,14 @@ import { MD3LightTheme } from 'react-native-paper';
 
 export const colors = {
   primary: {
-    default: '#B3261E',
-    light: '#FDE7E4',
-    dark: '#7A1C16',
+    default: '#B7271F',
+    light: '#FFE7E1',
+    dark: '#801E17',
   },
   secondary: {
-    default: '#174A7C',
-    light: '#DCEBFA',
-    dark: '#0A2B4D',
+    default: '#1E5A8C',
+    light: '#E2F0FA',
+    dark: '#12375A',
   },
   neutral: {
     50: '#FAFAFA',
@@ -31,7 +31,9 @@ export const colors = {
   },
   surface: {
     background: '#7B3F32',
-    card: 'rgba(255,255,255,0.92)',
+    card: 'rgba(255,250,244,0.96)',
+    cardMuted: 'rgba(255,238,226,0.66)',
+    tabBar: 'rgba(255,250,246,0.96)',
     overlay: 'rgba(0,0,0,0.5)',
   },
   text: {
