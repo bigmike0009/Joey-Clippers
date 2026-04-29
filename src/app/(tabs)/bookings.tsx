@@ -4,17 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useMyBookings } from '@/hooks/useBookings';
 import { LoadingState } from '@/components/LoadingState';
+import { useMinimumLoading } from '@/hooks/useMinimumLoading';
+import { formatTime } from '@/lib/time';
 import type { MyBookingRow } from '@/types';
 
 type Section = { title: string; data: MyBookingRow[] };
 
 export default function BookingsScreen() {
   const { data: bookings, isLoading, isError, refetch, isRefetching } = useMyBookings();
+  const showLoading = useMinimumLoading(isLoading);
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         <LoadingState label="Loading bookings..." />
       </SafeAreaView>
     );
@@ -23,7 +25,6 @@ export default function BookingsScreen() {
   if (isError) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>Something went wrong.</Text>
           <Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button>
@@ -44,7 +45,6 @@ export default function BookingsScreen() {
   if (!sections.length) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-        <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         <View style={styles.centered}>
           <Text style={styles.emptyTitle}>No bookings yet</Text>
           <Text style={styles.emptyBody}>Head to Shop Days to book your next cut.</Text>
@@ -60,9 +60,6 @@ export default function BookingsScreen() {
         keyExtractor={item => item.booking_id}
         refreshControl={
           <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.primary.default} />
-        }
-        ListHeaderComponent={
-          <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         }
         renderSectionHeader={({ section }) => (
           <Text style={styles.sectionTitle}>{section.title}</Text>
@@ -85,9 +82,14 @@ function BookingCard({ booking }: { booking: MyBookingRow }) {
     >
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardRow}>
-          <Text style={[styles.cardDate, (isPast || isCancelled) && styles.dimText]}>
-            {formatDate(booking.date)}
-          </Text>
+          <View style={styles.dateGroup}>
+            <Text style={[styles.cardDate, (isPast || isCancelled) && styles.dimText]}>
+              {formatDate(booking.date)}
+            </Text>
+            <Text style={[styles.cardTime, (isPast || isCancelled) && styles.dimText]}>
+              {formatTime(booking.start_time)}
+            </Text>
+          </View>
           {isCancelled && (
             <Chip compact style={styles.cancelledChip} textStyle={styles.cancelledChipText}>
               Day cancelled
@@ -109,28 +111,46 @@ function formatDate(dateStr: string) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
-  header: { paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
-  title: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.text.primary },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[3] },
   errorText: { fontSize: typography.fontSize.base, color: colors.text.secondary },
   emptyTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary },
   emptyBody: { fontSize: typography.fontSize.base, color: colors.text.secondary, textAlign: 'center' },
-  list: { paddingBottom: spacing[8] },
+  list: { paddingTop: spacing[2], paddingBottom: spacing[8] },
   sectionTitle: {
+    alignSelf: 'flex-start',
+    overflow: 'hidden',
     fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.secondary,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.secondary.dark,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
-    paddingBottom: spacing[2],
+    backgroundColor: 'rgba(255,250,244,0.74)',
+    borderRadius: radius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+    marginLeft: spacing[4],
+    marginTop: spacing[4],
+    marginBottom: spacing[2],
   },
-  card: { marginHorizontal: spacing[4], marginBottom: spacing[3], borderRadius: radius.lg, backgroundColor: colors.surface.card },
-  dimCard: { opacity: 0.6 },
+  card: {
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[3],
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(128,30,23,0.14)',
+    shadowColor: colors.neutral[900],
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  dimCard: { backgroundColor: colors.surface.cardMuted, opacity: 0.76 },
   cardContent: { gap: spacing[1] },
   cardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardDate: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary, flex: 1 },
+  dateGroup: { flex: 1, paddingRight: spacing[3] },
+  cardDate: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary },
+  cardTime: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.secondary.default, marginTop: spacing[1] },
   dimText: { color: colors.text.disabled },
   notes: { fontSize: typography.fontSize.sm, color: colors.text.secondary, fontStyle: 'italic' },
   cancelledChip: { backgroundColor: '#FEE2E2' },

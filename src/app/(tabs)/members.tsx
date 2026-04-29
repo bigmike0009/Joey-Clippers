@@ -9,6 +9,7 @@ import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useAllProfiles, useRevokeMember, useInviteList, useGenerateInvite, useDeleteInvite } from '@/hooks/useProfiles';
 import { LoadingState } from '@/components/LoadingState';
+import { useMinimumLoading } from '@/hooks/useMinimumLoading';
 import type { Profile, Invite } from '@/types';
 
 const INVITE_SCHEME = 'joeys-clippers:///register';
@@ -18,6 +19,7 @@ export default function MembersScreen() {
 
   const { data: profiles, isLoading: profilesLoading, isError: profilesError, refetch: refetchProfiles, isRefetching } = useAllProfiles();
   const { data: invites, isLoading: invitesLoading, refetch: refetchInvites } = useInviteList();
+  const showLoading = useMinimumLoading(profilesLoading || invitesLoading);
 
   const revokeMutation = useRevokeMember();
   const generateInviteMutation = useGenerateInvite();
@@ -47,7 +49,7 @@ export default function MembersScreen() {
     if (error) setSnackMessage('Could not delete invite.');
   }
 
-  if (profilesLoading || invitesLoading) {
+  if (showLoading) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>Members</Text></View>

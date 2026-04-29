@@ -11,6 +11,8 @@ import { colors, spacing, typography, radius } from '@/theme';
 import { useBookingsForDay, useCancelBooking } from '@/hooks/useBookings';
 import { useCancelShopDay, useUpcomingShopDays } from '@/hooks/useShopDays';
 import { LoadingState } from '@/components/LoadingState';
+import { useMinimumLoading } from '@/hooks/useMinimumLoading';
+import { formatTime } from '@/lib/time';
 
 type BookingWithProfile = {
   id: string;
@@ -26,6 +28,7 @@ export default function DayDetailScreen() {
 
   const { data: shopDays } = useUpcomingShopDays();
   const { data: bookings, isLoading, isError, refetch, isRefetching } = useBookingsForDay(id);
+  const showLoading = useMinimumLoading(isLoading);
   const cancelBookingMutation = useCancelBooking();
   const cancelDayMutation = useCancelShopDay();
 
@@ -54,7 +57,7 @@ export default function DayDetailScreen() {
     }
   }
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <PaperProvider theme={paperTheme}>
         <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
@@ -90,7 +93,10 @@ export default function DayDetailScreen() {
           <View>
             <View style={styles.summary}>
               {shopDay && (
-                <Text style={styles.dateText}>{formatDate(shopDay.date)}</Text>
+                <>
+                  <Text style={styles.dateText}>{formatDate(shopDay.date)}</Text>
+                  <Text style={styles.timeText}>{formatTime(shopDay.start_time)}</Text>
+                </>
               )}
               <View style={styles.utilRow}>
                 <Text style={styles.utilLabel}>Slots booked</Text>
@@ -211,6 +217,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: typography.fontSize.base, color: colors.text.secondary },
   summary: { padding: spacing[4], gap: spacing[3] },
   dateText: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary },
+  timeText: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.secondary.default },
   utilRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   utilLabel: { fontSize: typography.fontSize.base, color: colors.text.secondary },
   utilChip: { backgroundColor: colors.primary.light },

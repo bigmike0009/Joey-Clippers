@@ -1,10 +1,9 @@
 import { View, StyleSheet } from 'react-native';
-import { Text, Button, Chip, Divider } from 'react-native-paper';
+import { Text, Button, Chip } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { signOut } from '@/services/auth';
-import { BarberPoleLoader } from '@/components/BarberPoleLoader';
 
 export default function ProfileScreen() {
   const { profile } = useAuth();
@@ -28,15 +27,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
-      </View>
-
-      <View style={styles.card}>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarInitial}>
-            {profile.full_name.charAt(0).toUpperCase()}
-          </Text>
+      <View style={styles.profilePanel}>
+        <View style={styles.avatarWrap}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarInitial}>
+              {profile.full_name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
         </View>
 
         <Text style={styles.name}>{profile.full_name}</Text>
@@ -48,18 +45,7 @@ export default function ProfileScreen() {
         >
           {isAdmin ? 'Admin' : 'Member'}
         </Chip>
-      </View>
 
-      <Divider style={styles.divider} />
-
-      <View style={styles.previewSection}>
-        <Text style={styles.previewTitle}>Loader Preview</Text>
-        <BarberPoleLoader size={96} label="Loading appointments..." />
-      </View>
-
-      <Divider style={styles.divider} />
-
-      <View style={styles.section}>
         <Button
           mode="outlined"
           onPress={handleSignOut}
@@ -79,16 +65,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'transparent',
   },
-  header: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[4],
-    paddingBottom: spacing[2],
-  },
-  title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
-  },
   centered: {
     flex: 1,
     alignItems: 'center',
@@ -98,32 +74,52 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
   },
-  card: {
+  profilePanel: {
+    marginHorizontal: spacing[4],
+    marginTop: spacing[4],
     alignItems: 'center',
     paddingVertical: spacing[8],
-    paddingHorizontal: spacing[4],
+    paddingHorizontal: spacing[6],
     gap: spacing[3],
+    borderRadius: radius.xl,
+    backgroundColor: 'rgba(255,250,244,0.88)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(128,30,23,0.16)',
+    shadowColor: colors.neutral[900],
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 5,
+  },
+  avatarWrap: {
+    padding: spacing[2],
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.66)',
   },
   avatarCircle: {
-    width: 80,
-    height: 80,
+    width: 96,
+    height: 96,
     borderRadius: radius.full,
     backgroundColor: colors.primary.default,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: 'rgba(255,250,244,0.95)',
   },
   avatarInitial: {
-    fontSize: typography.fontSize['3xl'],
+    fontSize: typography.fontSize['4xl'],
     fontWeight: typography.fontWeight.bold,
     color: colors.text.inverse,
   },
   name: {
-    fontSize: typography.fontSize.xl,
-    fontWeight: typography.fontWeight.semibold,
+    fontSize: typography.fontSize['2xl'],
+    fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
+    textAlign: 'center',
   },
   roleChip: {
     borderRadius: radius.full,
+    paddingHorizontal: spacing[2],
   },
   adminChip: {
     backgroundColor: colors.primary.light,
@@ -135,27 +131,11 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.sm,
     fontWeight: typography.fontWeight.medium,
   },
-  divider: {
-    marginHorizontal: spacing[4],
-  },
-  section: {
-    paddingHorizontal: spacing[4],
-    paddingTop: spacing[6],
-  },
-  previewSection: {
-    alignItems: 'center',
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[6],
-    gap: spacing[3],
-  },
-  previewTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-  },
   signOutButton: {
     borderColor: colors.semantic.error,
     borderRadius: radius.md,
+    marginTop: spacing[8],
+    alignSelf: 'stretch',
   },
   signOutContent: {
     paddingVertical: spacing[1],
