@@ -20,7 +20,8 @@
         "UIBackgroundModes": [
           "remote-notification"
         ],
-        "NSUserNotificationsUsageDescription": "Joe's Clippers sends you alerts when new shop days open, your booking is confirmed, and when it's time for your cut."
+        "NSUserNotificationsUsageDescription": "Joe's Clippers sends you alerts when new shop days open, your booking is confirmed, and when it's time for your cut.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
