@@ -2,6 +2,7 @@ export const queryKeys = {
   shopDays: {
     all: ['shop_days'] as const,
     upcoming: () => [...queryKeys.shopDays.all, 'upcoming'] as const,
+    past: () => [...queryKeys.shopDays.all, 'past'] as const,
     detail: (id: string) => [...queryKeys.shopDays.all, id] as const,
   },
   bookings: {

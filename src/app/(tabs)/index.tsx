@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useUpcomingShopDaysWithBookings } from '@/hooks/useBookings';
-import { useCreateShopDay, useCancelShopDay, useUpdateShopDaySlots } from '@/hooks/useShopDays';
+import { useCreateShopDay, useCancelShopDay, useUpdateShopDaySlots, usePastShopDays } from '@/hooks/useShopDays';
 import { useBookSlot, useCancelBooking } from '@/hooks/useBookings';
 import { ShopDayFormModal } from '@/components/ShopDayFormModal';
 import { getBookingErrorMessage } from '@/lib/errors';
@@ -28,6 +28,7 @@ export default function HomeScreen() {
   const router = useRouter();
 
   const { data: shopDays, isLoading, isError, refetch, isRefetching } = useUpcomingShopDaysWithBookings();
+  const { data: pastDays, refetch: refetchPast } = usePastShopDays();
 
   const createMutation = useCreateShopDay();
   const cancelDayMutation = useCancelShopDay();
@@ -100,8 +101,14 @@ export default function HomeScreen() {
     );
   }
 
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 60);
+  const cutoffStr = cutoff.toISOString().split('T')[0];
+
   const openDays = shopDays?.filter(d => d.status === 'open') ?? [];
-  const cancelledDays = shopDays?.filter(d => d.status === 'cancelled') ?? [];
+  const cancelledDays = shopDays?.filter(d => d.status === 'cancelled' && d.date >= cutoffStr) ?? [];
+  const pastOpenDays = pastDays?.filter(d => d.status === 'open' && d.date >= cutoffStr) ?? [];
+  const pastCancelledDays = pastDays?.filter(d => d.status === 'cancelled' && d.date >= cutoffStr) ?? [];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,7 +118,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={() => { refetch(); refetchPast(); }}
             tintColor={colors.primary.default}
           />
         }
@@ -202,23 +209,42 @@ export default function HomeScreen() {
           );
         }}
         ListFooterComponent={
-          cancelledDays.length > 0 ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Cancelled</Text>
-              {cancelledDays.map(item => (
-                <Card key={item.id} style={[styles.card, styles.cancelledCard]} mode="outlined">
-                  <Card.Content style={styles.cardContent}>
-                    <View style={styles.cardRow}>
-                      <Text style={[styles.dayDate, styles.cancelledText]}>{formatDate(item.date)}</Text>
-                      <Chip compact style={styles.cancelledChip} textStyle={styles.cancelledChipText}>
-                        Cancelled
-                      </Chip>
-                    </View>
-                  </Card.Content>
-                </Card>
-              ))}
-            </View>
-          ) : null
+          <>
+            {cancelledDays.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Cancelled</Text>
+                {cancelledDays.map(item => (
+                  <Card key={item.id} style={[styles.card, styles.cancelledCard]} mode="outlined">
+                    <Card.Content style={styles.cardContent}>
+                      <View style={styles.cardRow}>
+                        <Text style={[styles.dayDate, styles.cancelledText]}>{formatDate(item.date)}</Text>
+                        <Chip compact style={styles.cancelledChip} textStyle={styles.cancelledChipText}>Cancelled</Chip>
+                      </View>
+                    </Card.Content>
+                  </Card>
+                ))}
+              </View>
+            )}
+            {(pastOpenDays.length > 0 || pastCancelledDays.length > 0) && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Past Days</Text>
+                {[...pastOpenDays, ...pastCancelledDays]
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .map(item => (
+                    <Card key={item.id} style={[styles.card, styles.pastCard]} mode="outlined">
+                      <Card.Content style={styles.cardContent}>
+                        <View style={styles.cardRow}>
+                          <Text style={[styles.dayDate, styles.pastText]}>{formatDate(item.date)}</Text>
+                          {item.status === 'cancelled' && (
+                            <Chip compact style={styles.cancelledChip} textStyle={styles.cancelledChipText}>Cancelled</Chip>
+                          )}
+                        </View>
+                      </Card.Content>
+                    </Card>
+                  ))}
+              </View>
+            )}
+          </>
         }
         contentContainerStyle={styles.list}
       />
@@ -302,6 +328,8 @@ const styles = StyleSheet.create({
   cancelBookingBtn: { borderColor: colors.semantic.error, borderRadius: radius.md },
   adminActions: { flexDirection: 'row', gap: spacing[1], marginTop: spacing[1] },
   section: { paddingTop: spacing[4] },
+  pastCard: { opacity: 0.5 },
+  pastText: { color: colors.text.disabled },
   sectionTitle: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.semibold, color: colors.text.secondary, textTransform: 'uppercase', letterSpacing: 0.5, paddingHorizontal: spacing[4], marginBottom: spacing[2] },
   fab: { position: 'absolute', right: spacing[4], bottom: spacing[6], backgroundColor: colors.primary.default, borderRadius: radius.full },
 });
