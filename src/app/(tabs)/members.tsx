@@ -13,7 +13,7 @@ import { LoadingState } from '@/components/LoadingState';
 import { useMinimumLoading } from '@/hooks/useMinimumLoading';
 import type { Profile, Invite } from '@/types';
 
-const INVITE_SCHEME = 'https://wdyseexaijxwmqukjbde.supabase.co/functions/v1/invite-landing';
+const INVITE_SCHEME = 'https://bigmike0009.github.io/Joey-Clippers/invite.html';
 
 export default function MembersScreen() {
   const { profile: myProfile } = useAuth();
