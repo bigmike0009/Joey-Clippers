@@ -1,15 +1,90 @@
-App Privacy (Data Types) Draft
-Mark as collected for app functionality:
+Joe's Clippers Privacy Policy
+Effective Date: April 29, 2026
 
-Contact Info
-Email Address
+Joe's Clippers ("we," "our," or "us") is a private, invite-only booking app for Joe's barbershop members.
+This Privacy Policy explains what information we collect, how we use it, and your choices.
 
-User Content
-Name (profile full name)
-Booking and request details entered by user
+1. Information We Collect
 
-Identifiers
-User ID (account identifier)
+We collect the following information when you use the app:
 
-Diagnostics
-Only if you actually collect crash/diagnostic telemetry via a service. If not, mark No.
+- Account Information
+	- Email address
+	- Encrypted authentication credentials (managed by our authentication provider)
+
+- Profile Information
+	- Full name
+	- Role (admin or member)
+
+- Booking and Scheduling Data
+	- Shop day bookings and cancellations
+	- Day requests you submit
+	- Invite status and related metadata
+
+- Device and Technical Data
+	- Basic technical logs needed to operate and secure the service
+	- We do not use your data for advertising tracking
+
+2. How We Use Information
+
+We use your information to:
+
+- Create and manage your account
+- Let you book, cancel, and view appointments
+- Let the admin manage shop days, requests, and member access
+- Maintain app security and prevent misuse
+- Provide support when you contact us
+
+3. Legal Basis (Where Applicable)
+
+We process data as needed to provide the service you request, for legitimate interests in running a secure scheduling service, and to comply with legal obligations.
+
+4. Data Sharing
+
+We do not sell your personal information.
+We share data only with service providers required to run the app, such as:
+
+- Supabase (authentication and database infrastructure)
+- Expo/EAS services (app delivery and operations)
+
+These providers process data under their own terms and security controls.
+
+5. Data Retention
+
+We keep account and scheduling data for as long as your account is active, or as needed for legitimate business and legal purposes.
+If you delete your account, we delete or de-identify personal data unless retention is required by law.
+
+6. Your Choices and Rights
+
+You can:
+
+- Access and update your profile information in the app
+- Delete your account in the app from Profile > Delete Account
+- Contact us to request data access or deletion help
+
+Depending on your region, you may have additional privacy rights.
+
+7. Children
+
+Joe's Clippers is not directed to children under 13, and we do not knowingly collect personal information from children under 13.
+
+8. Security
+
+We use reasonable administrative and technical safeguards to protect personal information.
+No method of transmission or storage is completely secure, but we continuously work to protect your data.
+
+9. International Transfers
+
+Your information may be processed in countries other than your own, where our service providers operate.
+
+10. Changes to This Policy
+
+We may update this Privacy Policy from time to time.
+If we make material changes, we will update the effective date above and post the revised policy.
+
+11. Contact Us
+
+For privacy questions or requests, contact:
+
+Email: [YOUR SUPPORT EMAIL]
+Support URL: [YOUR SUPPORT PAGE URL]

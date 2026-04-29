@@ -1,0 +1,51 @@
+Joe's Clippers Support
+Last Updated: April 29, 2026
+
+Need help with Joe's Clippers? We can help with sign-in issues, invite links, booking problems, and account questions.
+
+How to Get Help
+
+Email Support: [YOUR SUPPORT EMAIL]
+Response Time: Usually within 1-2 business days
+
+When contacting support, please include:
+- The email address on your account
+- A short description of the issue
+- What you were trying to do
+- Any error message shown in the app
+- Optional screenshots
+
+Common Issues
+
+1) I cannot register
+Joe's Clippers is invite-only. You must use a valid invite link from Joe.
+If your invite says expired or already used, ask Joe to generate a new invite.
+
+2) I forgot my password
+Use the password reset flow provided by the authentication screen.
+If you still cannot access your account, contact support.
+
+3) I cannot book a day
+If a day is full, booking is unavailable. You can join the waitlist when shown.
+If booking fails unexpectedly, try again and refresh.
+
+4) My account was revoked
+Member access is managed by the admin. Contact Joe directly if you believe this was a mistake.
+
+5) I want to delete my account
+In the app, go to Profile > Delete Account.
+Account deletion is permanent and cannot be undone.
+
+Feature Availability
+
+Joe's Clippers is currently iOS-first and for a private member group.
+No in-app purchases or subscription billing are used in this app.
+
+Privacy
+
+Read our privacy policy here:
+[YOUR PRIVACY POLICY URL]
+
+Contact
+
+Support Email: [YOUR SUPPORT EMAIL]
