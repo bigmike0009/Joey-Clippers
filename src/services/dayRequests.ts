@@ -11,7 +11,8 @@ export async function getMyDayRequests() {
     .from('day_requests')
     .select('*')
     .gte('requested_date', cutoffDateStr())
-    .order('requested_date', { ascending: true });
+    .order('requested_date', { ascending: true })
+    .order('requested_time', { ascending: true });
 }
 
 export async function getAllDayRequests() {
@@ -19,13 +20,24 @@ export async function getAllDayRequests() {
     .from('day_requests')
     .select('*, profiles!day_requests_requested_by_fkey(full_name)')
     .gte('requested_date', cutoffDateStr())
-    .order('requested_date', { ascending: true });
+    .order('requested_date', { ascending: true })
+    .order('requested_time', { ascending: true });
 }
 
-export async function submitDayRequest(requestedBy: string, requestedDate: string, notes?: string) {
+export async function submitDayRequest(
+  requestedBy: string,
+  requestedDate: string,
+  requestedTime: string,
+  notes?: string,
+) {
   return supabase
     .from('day_requests')
-    .insert({ requested_by: requestedBy, requested_date: requestedDate, notes: notes ?? null })
+    .insert({
+      requested_by: requestedBy,
+      requested_date: requestedDate,
+      requested_time: requestedTime,
+      notes: notes ?? null,
+    })
     .select()
     .single();
 }
@@ -47,9 +59,10 @@ export async function respondToDayRequest(
     .single();
 }
 
-export async function approveDayRequest(requestId: string, slotCount: number) {
+export async function approveDayRequest(requestId: string, slotCount: number, startTime: string) {
   return supabase.rpc('approve_day_request', {
     p_request_id: requestId,
     p_slot_count: slotCount,
+    p_start_time: startTime,
   });
 }

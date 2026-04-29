@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Platform, RefreshControl, Keyboard, ScrollView, Dimensions, KeyboardAvoidingView } from 'react-native';
 import {
   Text, Card, Button, Chip, FAB, Portal, Modal,
-  TextInput, HelperText, Snackbar, Badge,
+  TextInput, HelperText, Snackbar,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -10,6 +10,8 @@ import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest, useApproveDayRequest } from '@/hooks/useDayRequests';
 import { LoadingState } from '@/components/LoadingState';
+import { useMinimumLoading } from '@/hooks/useMinimumLoading';
+import { dateToTimeString, formatTime, timeStringToDate } from '@/lib/time';
 import type { DayRequest } from '@/types';
 
 export default function RequestsScreen() {
@@ -25,17 +27,27 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 function MemberRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useMyDayRequests();
+  const showLoading = useMinimumLoading(isLoading);
   const submitMutation = useSubmitDayRequest();
 
   const [formVisible, setFormVisible] = useState(false);
   const [date, setDate] = useState(tomorrow());
+  const [requestedTime, setRequestedTime] = useState(timeStringToDate());
   const [showPicker, setShowPicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [notes, setNotes] = useState('');
   const [dateError, setDateError] = useState('');
   const [snackMessage, setSnackMessage] = useState('');
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  useEffect(() => { if (!formVisible) { setNotes(''); setDate(tomorrow()); setDateError(''); } }, [formVisible]);
+  useEffect(() => {
+    if (!formVisible) {
+      setNotes('');
+      setDate(tomorrow());
+      setRequestedTime(timeStringToDate());
+      setDateError('');
+    }
+  }, [formVisible]);
 
   useEffect(() => {
     const showEvt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -54,7 +66,11 @@ function MemberRequestsView() {
     if (dupe) { setDateError('You already have a pending request for that date.'); return; }
 
     setDateError('');
-    const { error } = await submitMutation.mutateAsync({ date: dateStr, notes: notes.trim() || undefined });
+    const { error } = await submitMutation.mutateAsync({
+      date: dateStr,
+      requestedTime: dateToTimeString(requestedTime),
+      notes: notes.trim() || undefined,
+    });
     if (error) {
       const msg = (error as { message?: string }).message ?? '';
       setSnackMessage(msg.includes('unique') ? 'You already requested that date.' : 'Could not submit request.');
@@ -64,11 +80,21 @@ function MemberRequestsView() {
     }
   }
 
-  if (isLoading) return <ScreenShell title="Requests"><LoadingState label="Loading requests..." /></ScreenShell>;
-  if (isError) return <ScreenShell title="Requests"><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
+  function closePickers() {
+    setShowPicker(false);
+    setShowTimePicker(false);
+  }
+
+  function handleDismissForm() {
+    closePickers();
+    setFormVisible(false);
+  }
+
+  if (showLoading) return <ScreenShell><LoadingState label="Loading requests..." /></ScreenShell>;
+  if (isError) return <ScreenShell><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
 
   return (
-    <ScreenShell title="Requests">
+    <ScreenShell>
       <FlatList
         data={requests}
         keyExtractor={item => item.id}
@@ -88,7 +114,7 @@ function MemberRequestsView() {
       <Portal>
         <Modal
           visible={formVisible}
-          onDismiss={() => setFormVisible(false)}
+          onDismiss={handleDismissForm}
           contentContainerStyle={[
             styles.modal,
             {
@@ -101,7 +127,15 @@ function MemberRequestsView() {
             <Text style={styles.modalTitle}>Request a Day</Text>
 
             <Text style={styles.label}>Date</Text>
-            <Button mode="outlined" onPress={() => setShowPicker(true)} style={styles.dateButton} textColor={colors.text.primary}>
+            <Button
+              mode="outlined"
+              onPress={() => {
+                setShowTimePicker(false);
+                setShowPicker(true);
+              }}
+              style={styles.dateButton}
+              textColor={colors.text.primary}
+            >
               {formatDisplayDate(date)}
             </Button>
             {dateError ? <HelperText type="error">{dateError}</HelperText> : null}
@@ -116,10 +150,37 @@ function MemberRequestsView() {
               />
             )}
 
+            <Text style={styles.label}>Preferred time</Text>
+            <Button
+              mode="outlined"
+              onPress={() => {
+                setShowPicker(false);
+                setShowTimePicker(true);
+              }}
+              style={styles.dateButton}
+              textColor={colors.text.primary}
+            >
+              {formatTime(dateToTimeString(requestedTime))}
+            </Button>
+
+            {showTimePicker && (
+              <DateTimePicker
+                value={requestedTime}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minuteInterval={5}
+                onChange={(_e, selected) => {
+                  setShowTimePicker(Platform.OS === 'ios');
+                  if (selected) setRequestedTime(selected);
+                }}
+              />
+            )}
+
             <TextInput
               label="Notes (optional)"
               value={notes}
               onChangeText={setNotes}
+              onFocus={closePickers}
               mode="outlined"
               style={styles.input}
               outlineColor={colors.neutral[300]}
@@ -128,7 +189,7 @@ function MemberRequestsView() {
             />
 
             <View style={styles.modalActions}>
-              <Button onPress={() => setFormVisible(false)} textColor={colors.text.secondary}>Cancel</Button>
+              <Button onPress={handleDismissForm} textColor={colors.text.secondary}>Cancel</Button>
               <Button mode="contained" onPress={handleSubmit} loading={submitMutation.isPending} disabled={submitMutation.isPending} buttonColor={colors.primary.default}>
                 Submit
               </Button>
@@ -146,15 +207,16 @@ function MemberRequestsView() {
 
 function AdminRequestsView() {
   const { data: requests, isLoading, isError, refetch, isRefetching } = useAllDayRequests();
+  const showLoading = useMinimumLoading(isLoading);
   const declineMutation = useRespondToDayRequest();
   const approveMutation = useApproveDayRequest();
 
   const [approvingRequest, setApprovingRequest] = useState<(DayRequest & { profiles: { full_name: string } | null }) | null>(null);
   const [slotCount, setSlotCount] = useState('3');
+  const [startTime, setStartTime] = useState(timeStringToDate());
+  const [showApprovalTimePicker, setShowApprovalTimePicker] = useState(false);
   const [slotCountError, setSlotCountError] = useState('');
   const [snackMessage, setSnackMessage] = useState('');
-
-  const pendingCount = requests?.filter(r => r.status === 'pending').length ?? 0;
 
   async function handleDecline(id: string) {
     const { error } = await declineMutation.mutateAsync({ id, status: 'declined' });
@@ -169,7 +231,11 @@ function AdminRequestsView() {
       return;
     }
     setSlotCountError('');
-    const { error } = await approveMutation.mutateAsync({ requestId: approvingRequest.id, slotCount: count });
+    const { error } = await approveMutation.mutateAsync({
+      requestId: approvingRequest.id,
+      slotCount: count,
+      startTime: dateToTimeString(startTime),
+    });
     if (error) {
       setSnackMessage('Could not approve. Try again.');
     } else {
@@ -178,14 +244,23 @@ function AdminRequestsView() {
     }
   }
 
-  if (isLoading) return <ScreenShell title="Requests" badge={0}><LoadingState label="Loading requests..." /></ScreenShell>;
-  if (isError) return <ScreenShell title="Requests" badge={0}><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
+  function closeApprovalPickers() {
+    setShowApprovalTimePicker(false);
+  }
+
+  function handleDismissApproval() {
+    closeApprovalPickers();
+    setApprovingRequest(null);
+  }
+
+  if (showLoading) return <ScreenShell><LoadingState label="Loading requests..." /></ScreenShell>;
+  if (isError) return <ScreenShell><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
 
   const pending = requests?.filter(r => r.status === 'pending') ?? [];
   const responded = requests?.filter(r => r.status !== 'pending') ?? [];
 
   return (
-    <ScreenShell title="Requests" badge={pendingCount}>
+    <ScreenShell>
       <FlatList
         data={[...pending, ...responded]}
         keyExtractor={item => item.id}
@@ -202,6 +277,7 @@ function AdminRequestsView() {
             onApprove={() => {
               setSlotCount('3');
               setSlotCountError('');
+              setStartTime(timeStringToDate(item.requested_time));
               setApprovingRequest(item as DayRequest & { profiles: { full_name: string } | null });
             }}
             onDecline={() => handleDecline(item.id)}
@@ -214,7 +290,7 @@ function AdminRequestsView() {
       <Portal>
         <Modal
           visible={!!approvingRequest}
-          onDismiss={() => setApprovingRequest(null)}
+          onDismiss={handleDismissApproval}
           contentContainerStyle={styles.modal}
         >
           <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
@@ -222,13 +298,35 @@ function AdminRequestsView() {
               <Text style={styles.modalTitle}>Open Shop Day</Text>
               {approvingRequest && (
                 <Text style={styles.modalSubtitle}>
-                  {formatDate(approvingRequest.requested_date)} — requested by {approvingRequest.profiles?.full_name ?? 'Unknown'}
+                  {formatDate(approvingRequest.requested_date)} at {formatTime(approvingRequest.requested_time)} — requested by {approvingRequest.profiles?.full_name ?? 'Unknown'}
                 </Text>
+              )}
+              <Text style={styles.label}>Start time</Text>
+              <Button
+                mode="outlined"
+                onPress={() => setShowApprovalTimePicker(true)}
+                style={styles.dateButton}
+                textColor={colors.text.primary}
+              >
+                {formatTime(dateToTimeString(startTime))}
+              </Button>
+              {showApprovalTimePicker && (
+                <DateTimePicker
+                  value={startTime}
+                  mode="time"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  minuteInterval={5}
+                  onChange={(_e, selected) => {
+                    setShowApprovalTimePicker(Platform.OS === 'ios');
+                    if (selected) setStartTime(selected);
+                  }}
+                />
               )}
               <TextInput
                 label="Number of slots"
                 value={slotCount}
                 onChangeText={text => { setSlotCount(text.replace(/[^0-9]/g, '')); setSlotCountError(''); }}
+                onFocus={closeApprovalPickers}
                 mode="outlined"
                 keyboardType="number-pad"
                 style={styles.input}
@@ -237,7 +335,7 @@ function AdminRequestsView() {
               />
               {slotCountError ? <HelperText type="error">{slotCountError}</HelperText> : null}
               <View style={styles.modalActions}>
-                <Button onPress={() => setApprovingRequest(null)} textColor={colors.text.secondary}>Cancel</Button>
+                <Button onPress={handleDismissApproval} textColor={colors.text.secondary}>Cancel</Button>
                 <Button
                   mode="contained"
                   onPress={handleApproveSubmit}
@@ -260,17 +358,9 @@ function AdminRequestsView() {
 
 // ─── Shared Components ─────────────────────���──────────────────────────────────
 
-function ScreenShell({ title, badge, children }: { title: string; badge?: number; children: React.ReactNode }) {
+function ScreenShell({ children }: { children: React.ReactNode }) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>{title}</Text>
-          {badge != null && badge > 0 && (
-            <Badge style={styles.badge}>{badge}</Badge>
-          )}
-        </View>
-      </View>
       <View style={styles.flex}>{children}</View>
     </SafeAreaView>
   );
@@ -292,7 +382,10 @@ function RequestCard({ request }: { request: DayRequest }) {
     <Card style={styles.card} mode="elevated">
       <Card.Content style={styles.cardContent}>
         <View style={styles.cardRow}>
-          <Text style={styles.cardDate}>{formatDate(request.requested_date)}</Text>
+          <View style={styles.flex}>
+            <Text style={styles.cardDate}>{formatDate(request.requested_date)}</Text>
+            <Text style={styles.cardTime}>{formatTime(request.requested_time)}</Text>
+          </View>
           <Chip
             compact
             style={[styles.statusChip, { backgroundColor: statusColors[request.status] }]}
@@ -329,6 +422,7 @@ function AdminRequestCard({
               <Chip compact style={styles.newDayChip} textStyle={styles.newDayChipText}>New Day</Chip>
             </View>
             <Text style={styles.cardDate}>{formatDate(request.requested_date)}</Text>
+            <Text style={styles.cardTime}>{formatTime(request.requested_time)}</Text>
             <Text style={styles.memberName}>{request.profiles?.full_name ?? 'Unknown'}</Text>
           </View>
           {!isPending && (
@@ -372,24 +466,33 @@ function formatDate(dateStr: string) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'transparent' },
   flex: { flex: 1 },
-  header: { paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },
-  title: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.text.primary },
-  badge: { backgroundColor: colors.semantic.error, alignSelf: 'center' },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[3] },
   errorText: { fontSize: typography.fontSize.base, color: colors.text.secondary },
-  list: { paddingBottom: spacing[16] },
+  list: { paddingTop: spacing[4], paddingBottom: spacing[16] },
   empty: { paddingHorizontal: spacing[6], paddingTop: spacing[12], alignItems: 'center', gap: spacing[2] },
   emptyTitle: { fontSize: typography.fontSize.lg, fontWeight: typography.fontWeight.semibold, color: colors.text.primary },
   emptyBody: { fontSize: typography.fontSize.base, color: colors.text.secondary, textAlign: 'center' },
-  card: { marginHorizontal: spacing[4], marginBottom: spacing[3], borderRadius: radius.lg, backgroundColor: colors.surface.card },
-  dimCard: { opacity: 0.7 },
+  card: {
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[3],
+    borderRadius: radius.lg,
+    backgroundColor: colors.surface.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(128,30,23,0.14)',
+    shadowColor: colors.neutral[900],
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
+  },
+  dimCard: { backgroundColor: colors.surface.cardMuted, opacity: 0.82 },
   cardContent: { gap: spacing[2] },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   requestTypeRow: { marginBottom: spacing[1] },
   newDayChip: { backgroundColor: colors.primary.light, alignSelf: 'flex-start' },
   newDayChipText: { fontSize: typography.fontSize.xs, color: colors.primary.dark, fontWeight: typography.fontWeight.medium },
   cardDate: { fontSize: typography.fontSize.base, fontWeight: typography.fontWeight.semibold, color: colors.text.primary },
+  cardTime: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.medium, color: colors.secondary.default, marginTop: spacing[1] },
   memberName: { fontSize: typography.fontSize.sm, color: colors.text.secondary, marginTop: spacing[1] },
   notes: { fontSize: typography.fontSize.sm, color: colors.text.secondary, fontStyle: 'italic' },
   statusChip: { borderRadius: radius.full },
@@ -397,7 +500,18 @@ const styles = StyleSheet.create({
   adminActions: { flexDirection: 'row', gap: spacing[2], marginTop: spacing[1] },
   respondBtn: { borderRadius: radius.md },
   declineBtn: { borderColor: colors.semantic.error, borderRadius: radius.md },
-  fab: { position: 'absolute', right: spacing[4], bottom: spacing[6], backgroundColor: colors.primary.default, borderRadius: radius.full },
+  fab: {
+    position: 'absolute',
+    right: spacing[4],
+    bottom: spacing[6],
+    backgroundColor: colors.primary.default,
+    borderRadius: radius.full,
+    shadowColor: colors.neutral[900],
+    shadowOpacity: 0.22,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
+  },
   modal: { backgroundColor: colors.surface.card, margin: spacing[4], borderRadius: radius.xl, padding: spacing[6], gap: spacing[3] },
   modalTitle: { fontSize: typography.fontSize.xl, fontWeight: typography.fontWeight.bold, color: colors.text.primary, marginBottom: spacing[1] },
   modalSubtitle: { fontSize: typography.fontSize.sm, color: colors.text.secondary, marginBottom: spacing[2] },

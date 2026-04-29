@@ -30,8 +30,8 @@ export function useSubmitDayRequest() {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: ({ date, notes }: { date: string; notes?: string }) =>
-      dayRequestsService.submitDayRequest(user!.id, date, notes),
+    mutationFn: ({ date, requestedTime, notes }: { date: string; requestedTime: string; notes?: string }) =>
+      dayRequestsService.submitDayRequest(user!.id, date, requestedTime, notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dayRequests.all });
     },
@@ -60,8 +60,15 @@ export function useApproveDayRequest() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ requestId, slotCount }: { requestId: string; slotCount: number }) =>
-      dayRequestsService.approveDayRequest(requestId, slotCount),
+    mutationFn: ({
+      requestId,
+      slotCount,
+      startTime,
+    }: {
+      requestId: string;
+      slotCount: number;
+      startTime: string;
+    }) => dayRequestsService.approveDayRequest(requestId, slotCount, startTime),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.dayRequests.all });
       queryClient.invalidateQueries({ queryKey: queryKeys.shopDays.upcoming() });
