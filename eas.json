@@ -18,6 +18,17 @@
     }
   },
   "submit": {
-    "production": {}
+    "preview": {
+      "ios": {
+        "appleId": "mikea0009@gmail.com",
+        "ascAppId": "com.bigmike0009.joeysclippers"
+      }
+    },
+    "production": {
+      "ios": {
+        "appleId": "mikea0009@gmail.com",
+        "ascAppId": "com.bigmike0009.joeysclippers"
+      }
+    }
   }
 }
