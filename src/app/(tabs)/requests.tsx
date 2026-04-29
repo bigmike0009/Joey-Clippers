@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Platform, RefreshControl, Keyboard, ScrollView, Dimensions, KeyboardAvoidingView } from 'react-native';
 import {
-  Text, Card, Button, Chip, FAB, ActivityIndicator, Portal, Modal,
+  Text, Card, Button, Chip, FAB, Portal, Modal,
   TextInput, HelperText, Snackbar, Badge,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useMyDayRequests, useAllDayRequests, useSubmitDayRequest, useRespondToDayRequest, useApproveDayRequest } from '@/hooks/useDayRequests';
+import { LoadingState } from '@/components/LoadingState';
 import type { DayRequest } from '@/types';
 
 export default function RequestsScreen() {
@@ -63,7 +64,7 @@ function MemberRequestsView() {
     }
   }
 
-  if (isLoading) return <ScreenShell title="Requests"><View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View></ScreenShell>;
+  if (isLoading) return <ScreenShell title="Requests"><LoadingState label="Loading requests..." /></ScreenShell>;
   if (isError) return <ScreenShell title="Requests"><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
 
   return (
@@ -177,7 +178,7 @@ function AdminRequestsView() {
     }
   }
 
-  if (isLoading) return <ScreenShell title="Requests" badge={0}><View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View></ScreenShell>;
+  if (isLoading) return <ScreenShell title="Requests" badge={0}><LoadingState label="Loading requests..." /></ScreenShell>;
   if (isError) return <ScreenShell title="Requests" badge={0}><View style={styles.centered}><Text style={styles.errorText}>Something went wrong.</Text><Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button></View></ScreenShell>;
 
   const pending = requests?.filter(r => r.status === 'pending') ?? [];
@@ -261,7 +262,7 @@ function AdminRequestsView() {
 
 function ScreenShell({ title, badge, children }: { title: string; badge?: number; children: React.ReactNode }) {
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
         <View style={styles.headerRow}>
           <Text style={styles.title}>{title}</Text>

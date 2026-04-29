@@ -15,6 +15,10 @@ function TabIcon({ name, focused }: { name: IoniconName; focused: boolean }) {
   );
 }
 
+const transparentSceneOptions = {
+  sceneStyle: { backgroundColor: 'transparent' },
+};
+
 export default function TabsLayout() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'admin';
@@ -22,15 +26,15 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
+        ...transparentSceneOptions,
         headerShown: false,
-        sceneStyle: { backgroundColor: 'transparent' },
         tabBarActiveTintColor: colors.primary.default,
         tabBarInactiveTintColor: colors.text.disabled,
         tabBarStyle: {
           backgroundColor: colors.surface.card,
           borderTopColor: colors.secondary.dark,
         },
-      }}
+      } as never}
     >
       <Tabs.Screen
         name="index"

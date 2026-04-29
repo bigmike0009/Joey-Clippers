@@ -1,8 +1,9 @@
 import { View, SectionList, StyleSheet, RefreshControl } from 'react-native';
-import { Text, Card, Chip, ActivityIndicator, Button } from 'react-native-paper';
+import { Text, Card, Chip, Button } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useMyBookings } from '@/hooks/useBookings';
+import { LoadingState } from '@/components/LoadingState';
 import type { MyBookingRow } from '@/types';
 
 type Section = { title: string; data: MyBookingRow[] };
@@ -12,16 +13,16 @@ export default function BookingsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
-        <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
+        <LoadingState label="Loading bookings..." />
       </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>Something went wrong.</Text>
@@ -42,7 +43,7 @@ export default function BookingsScreen() {
 
   if (!sections.length) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>My Bookings</Text></View>
         <View style={styles.centered}>
           <Text style={styles.emptyTitle}>No bookings yet</Text>
@@ -53,7 +54,7 @@ export default function BookingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <SectionList
         sections={sections}
         keyExtractor={item => item.booking_id}

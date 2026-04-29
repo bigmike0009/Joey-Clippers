@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import {
-  Text, List, Button, Divider, ActivityIndicator, Snackbar,
+  Text, List, Button, Divider, Snackbar,
   Dialog, Portal, Chip, PaperProvider,
 } from 'react-native-paper';
 import { paperTheme } from '@/theme';
@@ -10,6 +10,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useBookingsForDay, useCancelBooking } from '@/hooks/useBookings';
 import { useCancelShopDay, useUpcomingShopDays } from '@/hooks/useShopDays';
+import { LoadingState } from '@/components/LoadingState';
 
 type BookingWithProfile = {
   id: string;
@@ -56,8 +57,8 @@ export default function DayDetailScreen() {
   if (isLoading) {
     return (
       <PaperProvider theme={paperTheme}>
-        <SafeAreaView style={styles.container}>
-          <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
+        <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+          <LoadingState label="Loading bookings..." />
         </SafeAreaView>
       </PaperProvider>
     );
@@ -66,7 +67,7 @@ export default function DayDetailScreen() {
   if (isError) {
     return (
       <PaperProvider theme={paperTheme}>
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
           <View style={styles.centered}>
             <Text style={styles.errorText}>Something went wrong.</Text>
             <Button onPress={() => refetch()} textColor={colors.primary.default}>Retry</Button>
@@ -78,7 +79,7 @@ export default function DayDetailScreen() {
 
   return (
     <PaperProvider theme={paperTheme}>
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         data={(bookings ?? []) as BookingWithProfile[]}
         keyExtractor={item => item.id}

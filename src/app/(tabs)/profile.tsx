@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { signOut } from '@/services/auth';
+import { BarberPoleLoader } from '@/components/BarberPoleLoader';
 
 export default function ProfileScreen() {
   const { profile } = useAuth();
@@ -17,7 +18,7 @@ export default function ProfileScreen() {
 
   if (!profile) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.centered}>
           <Text style={styles.placeholderText}>Loading profile…</Text>
         </View>
@@ -26,7 +27,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
       </View>
@@ -47,6 +48,13 @@ export default function ProfileScreen() {
         >
           {isAdmin ? 'Admin' : 'Member'}
         </Chip>
+      </View>
+
+      <Divider style={styles.divider} />
+
+      <View style={styles.previewSection}>
+        <Text style={styles.previewTitle}>Loader Preview</Text>
+        <BarberPoleLoader size={96} label="Loading appointments..." />
       </View>
 
       <Divider style={styles.divider} />
@@ -133,6 +141,17 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: spacing[4],
     paddingTop: spacing[6],
+  },
+  previewSection: {
+    alignItems: 'center',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[6],
+    gap: spacing[3],
+  },
+  previewTitle: {
+    fontSize: typography.fontSize.base,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.text.primary,
   },
   signOutButton: {
     borderColor: colors.semantic.error,

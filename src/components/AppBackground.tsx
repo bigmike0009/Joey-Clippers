@@ -1,9 +1,19 @@
 import { ImageBackground, StyleSheet } from 'react-native';
 import type { PropsWithChildren } from 'react';
+import { usePathname, useSegments } from 'expo-router';
 
-const backgroundImage = require('../../assets/images/barbershop-background.png');
+const signInBackground = require('../../assets/images/barbershop-background.png');
+const defaultBackground = require('../../assets/images/barbershop-background-awning-only.png');
 
 export function AppBackground({ children }: PropsWithChildren) {
+  const segments = useSegments();
+  const pathname = usePathname();
+  const isSignInScreen =
+    pathname === '/login' ||
+    pathname === '/(auth)/login' ||
+    (segments[0] === '(auth)' && segments[1] === 'login');
+  const backgroundImage = isSignInScreen ? signInBackground : defaultBackground;
+
   return (
     <ImageBackground
       source={backgroundImage}

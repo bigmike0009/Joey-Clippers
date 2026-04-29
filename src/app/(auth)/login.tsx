@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '@/theme';
@@ -33,65 +33,71 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <View style={styles.content}>
-          <Text style={styles.title}>Joe's Clippers ✂️</Text>
-          <Text style={styles.subtitle}>Sign in to book your cut</Text>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.content}
+        >
+          <View style={styles.signInBox}>
+            <Text style={styles.title}>Sign in</Text>
+            <Text style={styles.subtitle}>Book your next clip with Joey Snips</Text>
 
-          <View style={styles.form}>
-            <TextInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-              mode="outlined"
-              style={styles.input}
-              outlineColor={colors.neutral[300]}
-              activeOutlineColor={colors.primary.default}
-            />
+            <View style={styles.form}>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoComplete="email"
+                mode="outlined"
+                style={styles.input}
+                outlineColor={colors.neutral[300]}
+                activeOutlineColor={colors.primary.default}
+              />
 
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!passwordVisible}
-              mode="outlined"
-              style={styles.input}
-              outlineColor={colors.neutral[300]}
-              activeOutlineColor={colors.primary.default}
-              right={
-                <TextInput.Icon
-                  icon={passwordVisible ? 'eye-off' : 'eye'}
-                  onPress={() => setPasswordVisible(!passwordVisible)}
-                />
-              }
-            />
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!passwordVisible}
+                mode="outlined"
+                style={styles.input}
+                outlineColor={colors.neutral[300]}
+                activeOutlineColor={colors.primary.default}
+                right={
+                  <TextInput.Icon
+                    icon={passwordVisible ? 'eye-off' : 'eye'}
+                    onPress={() => setPasswordVisible(!passwordVisible)}
+                  />
+                }
+              />
 
-            {error ? (
-              <HelperText type="error" visible={!!error} style={styles.errorText}>
-                {error}
-              </HelperText>
-            ) : null}
+              {error ? (
+                <HelperText type="error" visible={!!error} style={styles.errorText}>
+                  {error}
+                </HelperText>
+              ) : null}
 
-            <Button
-              mode="contained"
-              onPress={handleSignIn}
-              loading={loading}
-              disabled={loading}
-              style={styles.button}
-              contentStyle={styles.buttonContent}
-              buttonColor={colors.primary.default}
-              labelStyle={styles.buttonLabel}
-            >
-              Sign In
-            </Button>
+              <Button
+                mode="contained"
+                onPress={handleSignIn}
+                loading={loading}
+                disabled={loading}
+                style={styles.button}
+                contentStyle={styles.buttonContent}
+                buttonColor={colors.primary.default}
+                labelStyle={styles.buttonLabel}
+              >
+                Sign In
+              </Button>
+            </View>
+
+            <Text style={styles.hint}>
+              Don't have an account? Too bad maybe you'll get aninvite link.
+            </Text>
           </View>
-
-          <Text style={styles.hint}>
-            Don't have an account? Ask Joe for an invite link.
-          </Text>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -106,13 +112,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     paddingHorizontal: spacing[6],
+    paddingTop: spacing[6],
+    paddingBottom: spacing[5],
+  },
+  signInBox: {
+    width: '100%',
+    padding: spacing[5],
+    borderRadius: 16,
+    backgroundColor: colors.surface.card,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    elevation: 4,
   },
   title: {
-    fontSize: typography.fontSize['3xl'],
+    fontSize: typography.fontSize['2xl'],
     fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
     marginBottom: spacing[1],
@@ -121,7 +140,7 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
-    marginBottom: spacing[8],
+    marginBottom: spacing[5],
     textAlign: 'center',
   },
   form: {
@@ -148,7 +167,7 @@ const styles = StyleSheet.create({
   hint: {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
-    marginTop: spacing[8],
+    marginTop: spacing[5],
     textAlign: 'center',
   },
 });

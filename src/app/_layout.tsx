@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { queryClient } from '@/lib/queryClient';
 import { paperTheme } from '@/theme';
+import { AppBackground } from '@/components/AppBackground';
 
 function RootNavigator() {
   const { session, isLoading } = useAuth();
@@ -27,8 +28,7 @@ function RootNavigator() {
         name="day-detail/[id]"
         options={{
           presentation: 'modal',
-          headerShown: true,
-          title: 'Day Detail',
+          headerShown: false,
           contentStyle: { backgroundColor: 'transparent' },
         }}
       />

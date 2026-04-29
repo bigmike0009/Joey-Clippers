@@ -7,7 +7,6 @@ import {
   Button,
   FAB,
   Chip,
-  ActivityIndicator,
   Snackbar,
   Dialog,
   Portal,
@@ -19,6 +18,7 @@ import { useUpcomingShopDaysWithBookings } from '@/hooks/useBookings';
 import { useCreateShopDay, useCancelShopDay, useUpdateShopDaySlots, usePastShopDays } from '@/hooks/useShopDays';
 import { useBookSlot, useCancelBooking, useJoinWaitlist } from '@/hooks/useBookings';
 import { ShopDayFormModal } from '@/components/ShopDayFormModal';
+import { LoadingState } from '@/components/LoadingState';
 import { getBookingErrorMessage } from '@/lib/errors';
 import type { ShopDay, ShopDaySummary } from '@/types';
 
@@ -89,16 +89,16 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>Shop Days</Text></View>
-        <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
+        <LoadingState label="Loading shop days..." />
       </SafeAreaView>
     );
   }
 
   if (isError) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>Shop Days</Text></View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>Something went wrong.</Text>
@@ -118,7 +118,7 @@ export default function HomeScreen() {
   const pastCancelledDays = pastDays?.filter(d => d.status === 'cancelled' && d.date >= cutoffStr) ?? [];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <FlatList
         data={openDays}
         keyExtractor={item => item.id}

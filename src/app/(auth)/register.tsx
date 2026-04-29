@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { Text, TextInput, Button, HelperText, ActivityIndicator, Banner } from 'react-native-paper';
+import { Text, TextInput, Button, HelperText, Banner } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { colors, spacing, typography } from '@/theme';
 import { signUp } from '@/services/auth';
 import { getInvitePreview, redeemInvite } from '@/services/invites';
+import { LoadingState } from '@/components/LoadingState';
 
 type InviteState =
   | { status: 'checking' }
@@ -96,10 +97,7 @@ export default function RegisterScreen() {
   if (invite.status === 'checking') {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <ActivityIndicator color={colors.primary.default} />
-          <Text style={styles.checkingText}>Checking your invite…</Text>
-        </View>
+        <LoadingState label="Checking your invite..." />
       </SafeAreaView>
     );
   }
@@ -262,11 +260,6 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
     textAlign: 'center',
-  },
-  checkingText: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-    marginTop: spacing[3],
   },
   banner: {
     marginBottom: spacing[4],

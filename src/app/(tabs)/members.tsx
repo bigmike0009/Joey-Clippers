@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { View, SectionList, StyleSheet, Share, RefreshControl } from 'react-native';
 import {
-  Text, List, Button, Divider, ActivityIndicator, FAB, Snackbar,
+  Text, List, Button, Divider, FAB, Snackbar,
   Dialog, Portal, Chip,
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography, radius } from '@/theme';
 import { useAuth } from '@/lib/AuthContext';
 import { useAllProfiles, useRevokeMember, useInviteList, useGenerateInvite, useDeleteInvite } from '@/hooks/useProfiles';
+import { LoadingState } from '@/components/LoadingState';
 import type { Profile, Invite } from '@/types';
 
 const INVITE_SCHEME = 'joeys-clippers:///register';
@@ -48,16 +49,16 @@ export default function MembersScreen() {
 
   if (profilesLoading || invitesLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>Members</Text></View>
-        <View style={styles.centered}><ActivityIndicator color={colors.primary.default} /></View>
+        <LoadingState label="Loading members..." />
       </SafeAreaView>
     );
   }
 
   if (profilesError) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
         <View style={styles.header}><Text style={styles.title}>Members</Text></View>
         <View style={styles.centered}>
           <Text style={styles.errorText}>Something went wrong.</Text>
@@ -80,7 +81,7 @@ export default function MembersScreen() {
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <SectionList
         sections={sections}
         keyExtractor={item => item.id}
