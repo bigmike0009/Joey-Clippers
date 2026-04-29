@@ -23,9 +23,13 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        sceneStyle: { backgroundColor: 'transparent' },
         tabBarActiveTintColor: colors.primary.default,
         tabBarInactiveTintColor: colors.text.disabled,
-        tabBarStyle: { backgroundColor: colors.surface.card },
+        tabBarStyle: {
+          backgroundColor: colors.surface.card,
+          borderTopColor: colors.secondary.dark,
+        },
       }}
     >
       <Tabs.Screen

@@ -20,10 +20,18 @@ function RootNavigator() {
   }, [session, isLoading, segments]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="day-detail/[id]" options={{ presentation: 'modal', headerShown: true, title: 'Day Detail' }} />
+      <Stack.Screen
+        name="day-detail/[id]"
+        options={{
+          presentation: 'modal',
+          headerShown: true,
+          title: 'Day Detail',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      />
     </Stack>
   );
 }
@@ -33,7 +41,9 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <PaperProvider theme={paperTheme}>
         <AuthProvider>
-          <RootNavigator />
+          <AppBackground>
+            <RootNavigator />
+          </AppBackground>
           <StatusBar style="auto" />
         </AuthProvider>
       </PaperProvider>

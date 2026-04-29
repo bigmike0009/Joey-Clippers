@@ -369,7 +369,7 @@ function formatDate(dateStr: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   flex: { flex: 1 },
   header: { paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[2] },

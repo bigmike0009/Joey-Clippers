@@ -331,7 +331,7 @@ function formatDate(dateStr: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface.background },
+  container: { flex: 1, backgroundColor: 'transparent' },
   header: { paddingHorizontal: spacing[4], paddingTop: spacing[4], paddingBottom: spacing[2] },
   title: { fontSize: typography.fontSize['2xl'], fontWeight: typography.fontWeight.bold, color: colors.text.primary },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing[3] },
