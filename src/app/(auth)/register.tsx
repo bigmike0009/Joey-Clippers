@@ -7,6 +7,7 @@ import { colors, spacing, typography } from '@/theme';
 import { signUp } from '@/services/auth';
 import { getInvitePreview, redeemInvite } from '@/services/invites';
 import { LoadingState } from '@/components/LoadingState';
+import { useMinimumLoading } from '@/hooks/useMinimumLoading';
 
 type InviteState =
   | { status: 'checking' }
@@ -29,6 +30,7 @@ export default function RegisterScreen() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
+  const showInviteChecking = useMinimumLoading(invite.status === 'checking');
 
   useEffect(() => {
     if (!token) return;
@@ -94,7 +96,7 @@ export default function RegisterScreen() {
     );
   }
 
-  if (invite.status === 'checking') {
+  if (showInviteChecking) {
     return (
       <SafeAreaView style={styles.container}>
         <LoadingState label="Checking your invite..." />

@@ -1,11 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, HelperText } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, typography } from '@/theme';
 import { signIn } from '@/services/auth';
+import { loginSlogans } from '@/content/loginSlogans';
 
 export default function LoginScreen() {
+  const subtitle = useMemo(() => {
+    const sloganIndex = Math.floor(Math.random() * loginSlogans.length);
+    return loginSlogans[sloganIndex];
+  }, []);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -40,7 +46,7 @@ export default function LoginScreen() {
         >
           <View style={styles.signInBox}>
             <Text style={styles.title}>Sign in</Text>
-            <Text style={styles.subtitle}>Book your next clip with Joey Snips</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
 
             <View style={styles.form}>
               <TextInput
@@ -94,7 +100,7 @@ export default function LoginScreen() {
             </View>
 
             <Text style={styles.hint}>
-              Don't have an account? Too bad maybe you'll get aninvite link.
+              Don't have an account? Too bad maybe you'll get an invite link.
             </Text>
           </View>
         </ScrollView>

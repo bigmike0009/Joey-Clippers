@@ -31,8 +31,18 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary.default,
         tabBarInactiveTintColor: colors.text.disabled,
         tabBarStyle: {
-          backgroundColor: colors.surface.card,
-          borderTopColor: colors.secondary.dark,
+          backgroundColor: colors.surface.tabBar,
+          borderTopColor: 'rgba(128,30,23,0.18)',
+          borderTopWidth: 1,
+          elevation: 18,
+          shadowColor: colors.neutral[900],
+          shadowOpacity: 0.14,
+          shadowRadius: 18,
+          shadowOffset: { width: 0, height: -6 },
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: '700',
         },
       } as never}
     >
