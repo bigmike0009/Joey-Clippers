@@ -35,7 +35,7 @@ export default function MembersScreen() {
     if (error || !token) { setSnackMessage('Could not generate invite.'); return; }
 
     const url = `${INVITE_SCHEME}?token=${token}`;
-    await Share.share({ message: `Join Joe's Clippers! ${url}`, url });
+    await Share.share({ message: `You've been invited to Joe's Clippers ✂️\n\nTap the link to get the app and create your account:\n${url}` });
     refetchInvites();
   }
 
