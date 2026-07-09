@@ -4,6 +4,7 @@
     "slug": "joeys-clippers",
     "version": "1.0.0",
     "orientation": "portrait",
+    "assetBundlePatterns": ["assets/images/*"],
     "icon": "./assets/images/icon.png",
     "scheme": "joeys-clippers",
     "userInterfaceStyle": "automatic",
