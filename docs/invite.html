@@ -27,15 +27,6 @@
     .icon { font-size: 52px; margin-bottom: 18px; }
     h1 { font-size: 26px; font-weight: 700; color: #2C1810; margin-bottom: 8px; }
     .subtitle { font-size: 15px; color: #78716C; line-height: 1.55; margin-bottom: 32px; }
-    .steps { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 18px; }
-    .step { display: flex; align-items: flex-start; gap: 14px; }
-    .step-num {
-      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
-      background: #D97706; color: #fff; font-size: 14px; font-weight: 700;
-      display: flex; align-items: center; justify-content: center; margin-top: 1px;
-    }
-    .step-body { font-size: 14px; color: #3C2A24; line-height: 1.5; }
-    .step-body strong { display: block; font-size: 15px; font-weight: 600; margin-bottom: 2px; }
     .btn {
       display: block; width: 100%; padding: 16px; border-radius: 14px;
       font-size: 16px; font-weight: 600; text-decoration: none;
@@ -44,10 +35,6 @@
     }
     .btn-primary { background: #D97706; color: #fff; }
     .btn-primary:active { background: #B45309; }
-    .btn-secondary { background: #F5EEE6; color: #2C1810; }
-    .btn-secondary:active { background: #E8DDD0; }
-    .divider { font-size: 12px; color: #A8A29E; margin: 16px 0; }
-    .no-token { font-size: 14px; color: #A8A29E; margin-top: 16px; }
   </style>
 </head>
 <body>
@@ -56,44 +43,12 @@
     <h1>You're invited!</h1>
     <p class="subtitle">
       Joe's Clippers is a private booking app for Joe's barbershop.
-      Follow the steps below to get set up.
+      Download the app to get started.
     </p>
 
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <strong>Download the app</strong>
-          Tap the button below to install Joe's Clippers via TestFlight.
-        </div>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <strong>Create your account</strong>
-          Once installed, come back here and tap "Set up my account" — your invite will be waiting.
-        </div>
-      </div>
-    </div>
-
-    <a class="btn btn-primary" href="https://testflight.apple.com/join/PfTDsfyY">
-      Download on TestFlight
+    <a class="btn btn-primary" href="https://apps.apple.com/us/app/joes-snip-shack/id6764616090">
+      Download on the App Store
     </a>
-
-    <div id="account-section"></div>
   </div>
-
-  <script>
-    var token = new URLSearchParams(window.location.search).get('token');
-    var section = document.getElementById('account-section');
-    if (token) {
-      var deepLink = 'joeys-clippers:///register?token=' + encodeURIComponent(token);
-      section.innerHTML =
-        '<p class="divider">Already installed?</p>' +
-        '<a class="btn btn-secondary" href="' + deepLink + '">Set up my account &rarr;</a>';
-    } else {
-      section.innerHTML = '<p class="no-token">Ask Joe for an invite link to create your account.</p>';
-    }
-  </script>
 </body>
 </html>
